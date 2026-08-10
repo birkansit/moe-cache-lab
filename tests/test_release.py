@@ -43,6 +43,7 @@ class PublicReleaseTests(unittest.TestCase):
 
     def test_validation_claim_boundary_is_explicit(self) -> None:
         text = (ROOT / "V05_VALIDATION.md").read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
         for required in (
             "MEASURED routing",
             "SIMULATED cache behavior",
@@ -51,7 +52,7 @@ class PublicReleaseTests(unittest.TestCase):
             "not PyTorch GPU inference",
             "not measured Granite runtime latency",
         ):
-            self.assertIn(required, text)
+            self.assertIn(required, normalized)
 
 
 if __name__ == "__main__":
