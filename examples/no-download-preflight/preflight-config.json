@@ -1,0 +1,56 @@
+{
+  "capacities_bytes": [
+    8,
+    12
+  ],
+  "expert_sizes": [
+    {
+      "expert_id": 0,
+      "layer_id": 0,
+      "size_bytes": 4
+    },
+    {
+      "expert_id": 1,
+      "layer_id": 0,
+      "size_bytes": 3
+    },
+    {
+      "expert_id": 2,
+      "layer_id": 0,
+      "size_bytes": 2
+    },
+    {
+      "expert_id": 0,
+      "layer_id": 1,
+      "size_bytes": 5
+    },
+    {
+      "expert_id": 2,
+      "layer_id": 1,
+      "size_bytes": 2
+    },
+    {
+      "expert_id": 3,
+      "layer_id": 1,
+      "size_bytes": 3
+    }
+  ],
+  "format": "moe-cache-lab.preflight-config",
+  "format_version": 1,
+  "hardware_profiles": [
+    {
+      "h2d_payload_bandwidth_bytes_per_second": 20,
+      "name": "fictional-fast-link",
+      "setup_latency_ns_per_loaded_expert": 50000000
+    },
+    {
+      "h2d_payload_bandwidth_bytes_per_second": 10,
+      "name": "fictional-slow-link",
+      "setup_latency_ns_per_loaded_expert": 100000000
+    }
+  ],
+  "policies": [
+    "lru",
+    "lfu"
+  ]
+}

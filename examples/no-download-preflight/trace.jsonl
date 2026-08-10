@@ -1,0 +1,9 @@
+{"capture_method": "synthetic-offline-demo", "created_at": "2026-08-09T00:00:00+00:00", "experts_per_token": 2, "format": "moe-cache-lab.routing-jsonl", "format_version": 1, "generated_text": "synthetic continuation fixture", "model_id": "synthetic/moe-preflight-demo", "model_revision": "synthetic-fixture-v1", "num_experts": 4, "record_type": "metadata", "source_text": "synthetic offline pre-flight fixture", "transformers_version": null}
+{"layer": 0, "phase": "prompt", "record_type": "routing_selection", "selected_experts": [0, 1], "selected_probabilities": [], "token_id": null, "token_position": 0}
+{"layer": 0, "phase": "prompt", "record_type": "routing_selection", "selected_experts": [1, 2], "selected_probabilities": [], "token_id": null, "token_position": 1}
+{"layer": 1, "phase": "prompt", "record_type": "routing_selection", "selected_experts": [0, 2], "selected_probabilities": [], "token_id": null, "token_position": 0}
+{"layer": 1, "phase": "prompt", "record_type": "routing_selection", "selected_experts": [0, 3], "selected_probabilities": [], "token_id": null, "token_position": 1}
+{"layer": 0, "phase": "generated", "record_type": "routing_selection", "selected_experts": [0, 2], "selected_probabilities": [], "token_id": null, "token_position": 2}
+{"layer": 1, "phase": "generated", "record_type": "routing_selection", "selected_experts": [0, 2], "selected_probabilities": [], "token_id": null, "token_position": 2}
+{"layer": 0, "phase": "generated", "record_type": "routing_selection", "selected_experts": [1, 2], "selected_probabilities": [], "token_id": null, "token_position": 3}
+{"layer": 1, "phase": "generated", "record_type": "routing_selection", "selected_experts": [0, 3], "selected_probabilities": [], "token_id": null, "token_position": 3}

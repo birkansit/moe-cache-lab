@@ -1,0 +1,6 @@
+include README.md
+include PREFLIGHT.md
+include V05_RELEASE_NOTES.md
+include V05_VALIDATION.md
+include LICENSE
+recursive-include examples/no-download-preflight *
