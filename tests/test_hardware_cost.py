@@ -5,7 +5,9 @@ from fractions import Fraction
 from moe_cache_lab import hardware_cost
 from moe_cache_lab.byte_cache import ByteCacheSimulation
 from moe_cache_lab.hardware_cost import (
+    DEFAULT_TRANSFER_OPERATION_PLAN,
     HardwareTransferProfile,
+    TransferOperationPlan,
     estimate_transfer_cost,
     run_transfer_sensitivity_sweep,
 )
@@ -65,7 +67,30 @@ class HardwareTransferCostTests(unittest.TestCase):
         )
 
         self.assertEqual(estimate.simulated_demand_load_count, 3)
+        self.assertEqual(estimate.modeled_transfer_operation_count, 3)
+        self.assertEqual(
+            estimate.transfer_operation_plan_name,
+            DEFAULT_TRANSFER_OPERATION_PLAN.name,
+        )
         self.assertEqual(estimate.estimated_setup_service_seconds, Fraction(3, 10))
+
+    def test_multi_operation_plan_changes_only_setup_bearing_operation_count(self) -> None:
+        base = simulation(demand_bytes=300, misses=3)
+        profile = HardwareTransferProfile("setup", 600, 100_000_000)
+        plan = TransferOperationPlan("two-chunks-per-load", 2)
+
+        estimate = estimate_transfer_cost(base, profile, plan)
+
+        self.assertEqual(estimate.simulated_demand_load_count, 3)
+        self.assertEqual(estimate.simulated_demand_load_bytes, 300)
+        self.assertEqual(estimate.modeled_transfer_operation_count, 6)
+        self.assertEqual(estimate.assumed_transfer_operations_per_logical_load, 2)
+        self.assertEqual(estimate.estimated_payload_service_seconds, Fraction(1, 2))
+        self.assertEqual(estimate.estimated_setup_service_seconds, Fraction(3, 5))
+        self.assertEqual(
+            estimate.estimated_serialized_transfer_service_seconds,
+            Fraction(11, 10),
+        )
 
     def test_exact_serialized_total_is_payload_plus_setup(self) -> None:
         profile = HardwareTransferProfile("combined", 600, 100_000_000)
@@ -160,6 +185,29 @@ class HardwareTransferCostTests(unittest.TestCase):
                 (6, "lfu", "alpha"),
                 (6, "lfu", "zeta"),
             ],
+        )
+
+    def test_sweep_orders_and_reuses_simulation_across_operation_plans(self) -> None:
+        sweep = run_transfer_sensitivity_sweep(
+            [event(0, (0,), 0), event(0, (1,), 1)],
+            {(0, 0): 2, (0, 1): 2},
+            capacities_bytes=[2],
+            policies=["lru"],
+            hardware_profiles=[HardwareTransferProfile("profile", 100, 10)],
+            transfer_operation_plans=[
+                TransferOperationPlan("two", 2),
+                TransferOperationPlan("one", 1),
+            ],
+        )
+
+        self.assertEqual(
+            [row.transfer_operation_plan.name for row in sweep.rows],
+            ["one", "two"],
+        )
+        self.assertEqual(sweep.rows[0].simulation, sweep.rows[1].simulation)
+        self.assertEqual(
+            sweep.rows[1].estimate.modeled_transfer_operation_count,
+            2 * sweep.rows[0].estimate.modeled_transfer_operation_count,
         )
 
     def test_workload_context_uses_layer_qualified_identity_and_supplied_sizes(self) -> None:
@@ -259,6 +307,32 @@ class HardwareTransferCostTests(unittest.TestCase):
             0,
         )
 
+    def test_transfer_operation_plan_validation_rejects_invalid_inputs(self) -> None:
+        for name in ("", " leading", "trailing ", "line\nbreak", None):
+            with self.subTest(name=name), self.assertRaisesRegex(
+                ValueError, "transfer operation plan name"
+            ):
+                TransferOperationPlan(name, 1)
+
+        for count in (0, -1, 1.5, True):
+            with self.subTest(count=count), self.assertRaisesRegex(
+                ValueError, "operations_per_logical_load"
+            ):
+                TransferOperationPlan("plan", count)
+
+        with self.assertRaisesRegex(ValueError, "plan names must be unique"):
+            run_transfer_sensitivity_sweep(
+                [event(0, (0,), 0)],
+                {(0, 0): 1},
+                capacities_bytes=[1],
+                policies=["lru"],
+                hardware_profiles=[HardwareTransferProfile("p", 100, 0)],
+                transfer_operation_plans=[
+                    TransferOperationPlan("dup", 1),
+                    TransferOperationPlan("dup", 2),
+                ],
+            )
+
     def test_sweep_rejects_any_capacity_below_maximum_atomic_working_set(self) -> None:
         with self.assertRaisesRegex(
             ValueError,
@@ -313,6 +387,10 @@ class HardwareTransferCostTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(TypeError, "HardwareTransferProfile"):
             estimate_transfer_cost(simulation(), object())
+        with self.assertRaisesRegex(TypeError, "TransferOperationPlan"):
+            estimate_transfer_cost(
+                simulation(), HardwareTransferProfile("p", 100, 0), object()
+            )
 
         with self.assertRaisesRegex(ValueError, "at least one byte capacity"):
             run_transfer_sensitivity_sweep(
@@ -337,6 +415,15 @@ class HardwareTransferCostTests(unittest.TestCase):
                 capacities_bytes=[1],
                 policies=["lru"],
                 hardware_profiles=[],
+            )
+        with self.assertRaisesRegex(ValueError, "at least one transfer operation plan"):
+            run_transfer_sensitivity_sweep(
+                [],
+                {},
+                capacities_bytes=[1],
+                policies=["lru"],
+                hardware_profiles=[HardwareTransferProfile("p", 100, 0)],
+                transfer_operation_plans=[],
             )
 
 

@@ -1,18 +1,30 @@
-"""Deterministic v0.5 wheel/sdist audit."""
+"""Deterministically audit one moe-cache-lab wheel/sdist version pair."""
 
 from __future__ import annotations
 
 import argparse
 from email.parser import Parser
 from pathlib import Path
+import re
 import tarfile
 import zipfile
 
 
 EXPECTED_NAME = "moe-cache-lab"
-EXPECTED_VERSION = "0.5.0"
 EXPECTED_LICENSE_EXPRESSION = "Apache-2.0"
-EXPECTED_SDIST_ROOT = "moe_cache_lab-0.5.0"
+REQUIRED_PACKAGE_MODULES = (
+    "moe_cache_lab/__init__.py",
+    "moe_cache_lab/byte_cache.py",
+    "moe_cache_lab/hardware_cost.py",
+    "moe_cache_lab/preflight.py",
+    "moe_cache_lab/preflight_output.py",
+    "moe_cache_lab/sensitivity_summary.py",
+)
+REQUIRED_RELEASE_DOCS = (
+    "README.md",
+    "PREFLIGHT.md",
+    "V06_RELEASE_NOTES.md",
+)
 REQUIRED_SDIST_PATHS = (
     "LICENSE",
     "MANIFEST.in",
@@ -20,13 +32,20 @@ REQUIRED_SDIST_PATHS = (
     "README.md",
     "V05_RELEASE_NOTES.md",
     "V05_VALIDATION.md",
+    "V06_RELEASE_NOTES.md",
     "examples/no-download-preflight/README.md",
     "examples/no-download-preflight/expected.sha256",
     "examples/no-download-preflight/preflight-config.json",
     "examples/no-download-preflight/trace.jsonl",
     "pyproject.toml",
+    "scripts/audit_distributions.py",
     "setup.py",
     "src/moe_cache_lab/__init__.py",
+    "src/moe_cache_lab/byte_cache.py",
+    "src/moe_cache_lab/hardware_cost.py",
+    "src/moe_cache_lab/preflight.py",
+    "src/moe_cache_lab/preflight_output.py",
+    "src/moe_cache_lab/sensitivity_summary.py",
 )
 
 
@@ -35,10 +54,18 @@ def _require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
-def audit_wheel(path: Path) -> None:
+def _validate_version(version: str) -> str:
+    _require(
+        bool(re.fullmatch(r"[0-9]+(?:\.[0-9]+){2}(?:rc[0-9]+)?", version)),
+        "expected version must be a canonical release or rc version",
+    )
+    return version
+
+
+def audit_wheel(path: Path, version: str) -> None:
     _require(path.is_file(), f"wheel does not exist: {path}")
     _require(
-        path.name == "moe_cache_lab-0.5.0-py3-none-any.whl",
+        path.name == f"moe_cache_lab-{version}-py3-none-any.whl",
         f"unexpected wheel filename: {path.name}",
     )
 
@@ -46,11 +73,10 @@ def audit_wheel(path: Path) -> None:
         names = tuple(archive.namelist())
         metadata_names = [name for name in names if name.endswith(".dist-info/METADATA")]
         _require(len(metadata_names) == 1, "wheel must contain exactly one METADATA file")
-        metadata_text = archive.read(metadata_names[0]).decode("utf-8")
-        metadata = Parser().parsestr(metadata_text)
+        metadata = Parser().parsestr(archive.read(metadata_names[0]).decode("utf-8"))
 
         _require(metadata.get("Name") == EXPECTED_NAME, "wheel Name metadata mismatch")
-        _require(metadata.get("Version") == EXPECTED_VERSION, "wheel Version metadata mismatch")
+        _require(metadata.get("Version") == version, "wheel Version metadata mismatch")
         _require(
             metadata.get("License-Expression") == EXPECTED_LICENSE_EXPRESSION,
             "wheel License-Expression metadata mismatch",
@@ -68,34 +94,54 @@ def audit_wheel(path: Path) -> None:
             any(name.endswith(".dist-info/licenses/LICENSE") for name in names),
             "wheel must contain .dist-info/licenses/LICENSE",
         )
+        missing_modules = [name for name in REQUIRED_PACKAGE_MODULES if name not in names]
+        _require(
+            not missing_modules,
+            "wheel is missing required v0.6 modules: " + ", ".join(missing_modules),
+        )
+        docs_root = (
+            f"moe_cache_lab-{version}.data/data/share/doc/moe-cache-lab"
+        )
+        missing_docs = [
+            name for name in REQUIRED_RELEASE_DOCS
+            if f"{docs_root}/{name}" not in names
+        ]
+        _require(
+            not missing_docs,
+            "wheel is missing release-facing docs: " + ", ".join(missing_docs),
+        )
 
 
-def audit_sdist(path: Path) -> None:
+def audit_sdist(path: Path, version: str) -> None:
     _require(path.is_file(), f"sdist does not exist: {path}")
-    _require(path.name == "moe_cache_lab-0.5.0.tar.gz", f"unexpected sdist filename: {path.name}")
+    _require(
+        path.name == f"moe_cache_lab-{version}.tar.gz",
+        f"unexpected sdist filename: {path.name}",
+    )
+    expected_root = f"moe_cache_lab-{version}"
 
     with tarfile.open(path, mode="r:gz") as archive:
         file_names = {member.name for member in archive.getmembers() if member.isfile()}
 
     roots = {name.split("/", 1)[0] for name in file_names}
-    _require(roots == {EXPECTED_SDIST_ROOT}, f"unexpected sdist archive roots: {sorted(roots)}")
-
+    _require(roots == {expected_root}, f"unexpected sdist archive roots: {sorted(roots)}")
     missing = [
         relative
         for relative in REQUIRED_SDIST_PATHS
-        if f"{EXPECTED_SDIST_ROOT}/{relative}" not in file_names
+        if f"{expected_root}/{relative}" not in file_names
     ]
     _require(not missing, f"sdist is missing required files: {', '.join(missing)}")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", required=True, type=_validate_version)
     parser.add_argument("--wheel", required=True, type=Path)
     parser.add_argument("--sdist", required=True, type=Path)
     args = parser.parse_args(argv)
 
-    audit_wheel(args.wheel)
-    audit_sdist(args.sdist)
+    audit_wheel(args.wheel, args.version)
+    audit_sdist(args.sdist, args.version)
     print(f"wheel audit: OK ({args.wheel.name})")
     print(f"sdist audit: OK ({args.sdist.name})")
     return 0

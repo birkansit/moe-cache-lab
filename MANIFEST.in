@@ -2,5 +2,7 @@ include README.md
 include PREFLIGHT.md
 include V05_RELEASE_NOTES.md
 include V05_VALIDATION.md
+include V06_RELEASE_NOTES.md
 include LICENSE
+include scripts/audit_distributions.py
 recursive-include examples/no-download-preflight *

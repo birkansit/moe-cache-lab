@@ -9,11 +9,11 @@ transfer assumptions, it helps answer a narrower engineering question:
 > Is expert caching/offloading worth further runtime investigation for this
 > routing workload, and what routing/cache/cost behavior is driving the result?
 
-Current package version: **0.5.0**.
+Current package version: **0.6.0**.
 
 The built-in collector is currently Granite/Transformers-specific, using
 `ibm-granite/granite-3.1-1b-a400m-instruct` as the reference model. Once a
-compatible routing trace exists, the v0.5 analysis path is trace-format/core
+compatible routing trace exists, the analysis path is trace-format/core
 driven and can run without loading a model.
 
 > **Important:** this project is not an inference accelerator. It does not
@@ -30,8 +30,11 @@ driven and can run without loading a model.
 3. analyze global, per-layer, and prompt/decode routing locality;
 4. compute routing-frequency concentration statistics;
 5. replay traces through byte-capacity LRU/LFU cache simulations;
-6. evaluate explicit transfer-cost assumptions over simulated demand loads;
-7. emit deterministic Markdown and JSON pre-flight reports.
+6. compare cold-per-workload and persistent-sequence cache lifecycle scenarios;
+7. summarize tested capacity, policy, and workload sensitivity descriptively;
+8. evaluate explicit transfer-operation and transfer-cost assumptions over
+   simulated demand loads;
+9. emit deterministic Markdown and JSON pre-flight reports.
 
 The project keeps evidence classes separate:
 
@@ -128,9 +131,26 @@ moe-cache-lab analyze artifacts\granite-trace.jsonl `
   --json-output artifacts\preflight-report.json
 ```
 
+Config format version 2 adds explicit modeled transfer-operation plans without
+changing the underlying cache simulation. See [`PREFLIGHT.md`](PREFLIGHT.md).
+
+Cache lifecycle analysis over a validated corpus manifest:
+
+```powershell
+moe-cache-lab analyze-lifecycle artifacts\corpus\manifest-v1.json `
+  --preflight-config preflight-config.json `
+  --output artifacts\cache-lifecycle.md `
+  --json-output artifacts\cache-lifecycle.json
+```
+
+This compares `cold_per_workload` with `persistent_sequence`, reports
+deterministic descriptive sensitivity summaries, and applies the existing
+serialized/no-overlap **ESTIMATED** transfer-service equation to each lifecycle
+row. It does not establish physical Granite transfer granularity or residency.
+
 ## Validation
 
-The v0.5 package has deterministic no-download release gates plus a separate
+The v0.6 package has deterministic no-download release gates plus a preserved
 Windows local validation record covering fresh Granite routing, byte-cache
 semantic equivalence, workload sensitivity, and raw HIP H2D calibration.
 
@@ -161,7 +181,7 @@ before relying on them for engineering or research claims.
 
 ## Current limitations
 
-Version 0.5.0 does not provide:
+Version 0.6.0 does not provide:
 
 - real expert swapping/offloading or GPU residency management;
 - a runtime acceleration or speedup claim;
@@ -185,6 +205,7 @@ bottleneck justify the added complexity.
 - [`PREFLIGHT.md`](PREFLIGHT.md) — configuration and interpretation.
 - [`V05_VALIDATION.md`](V05_VALIDATION.md) — local v0.5 validation summary.
 - [`V05_RELEASE_NOTES.md`](V05_RELEASE_NOTES.md) — release scope and limits.
+- [`V06_RELEASE_NOTES.md`](V06_RELEASE_NOTES.md) — v0.6 release scope and limits.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution and reproducibility rules.
 - [`examples/no-download-preflight/README.md`](examples/no-download-preflight/README.md)
   — deterministic synthetic demo.

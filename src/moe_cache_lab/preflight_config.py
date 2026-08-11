@@ -8,14 +8,19 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .hardware_cost import HardwareTransferProfile
+from .hardware_cost import (
+    DEFAULT_TRANSFER_OPERATION_PLAN,
+    HardwareTransferProfile,
+    TransferOperationPlan,
+)
 from .trace import ExpertKey
 
 PREFLIGHT_CONFIG_FORMAT = "moe-cache-lab.preflight-config"
-PREFLIGHT_CONFIG_VERSION = 1
+PREFLIGHT_CONFIG_VERSION = 2
+PREFLIGHT_CONFIG_LEGACY_VERSION = 1
 _POLICY_ORDER = ("lru", "lfu")
 
-_TOP_LEVEL_FIELDS = frozenset({
+_TOP_LEVEL_FIELDS_V1 = frozenset({
     "format",
     "format_version",
     "expert_sizes",
@@ -23,11 +28,21 @@ _TOP_LEVEL_FIELDS = frozenset({
     "policies",
     "hardware_profiles",
 })
+_TOP_LEVEL_FIELDS_V2 = _TOP_LEVEL_FIELDS_V1 | {"transfer_operation_plans"}
 _EXPERT_SIZE_FIELDS = frozenset({"layer_id", "expert_id", "size_bytes"})
-_HARDWARE_PROFILE_FIELDS = frozenset({
+_HARDWARE_PROFILE_FIELDS_V1 = frozenset({
     "name",
     "h2d_payload_bandwidth_bytes_per_second",
     "setup_latency_ns_per_loaded_expert",
+})
+_HARDWARE_PROFILE_FIELDS_V2 = frozenset({
+    "name",
+    "h2d_payload_bandwidth_bytes_per_second",
+    "setup_latency_ns_per_transfer_operation",
+})
+_TRANSFER_OPERATION_PLAN_FIELDS = frozenset({
+    "name",
+    "operations_per_logical_load",
 })
 
 
@@ -66,6 +81,10 @@ class PreflightConfig:
     capacities_bytes: tuple[int, ...]
     policies: tuple[str, ...]
     hardware_profiles: tuple[HardwareTransferProfile, ...]
+    transfer_operation_plans: tuple[TransferOperationPlan, ...] = (
+        DEFAULT_TRANSFER_OPERATION_PLAN,
+    )
+    format_version: int = PREFLIGHT_CONFIG_LEGACY_VERSION
 
     def __post_init__(self) -> None:
         expert_sizes = tuple(self.expert_sizes)
@@ -122,6 +141,43 @@ class PreflightConfig:
                 + ", ".join(duplicate_names)
             )
 
+        plans = tuple(self.transfer_operation_plans)
+        if not plans:
+            raise ValueError(
+                "preflight config requires at least one transfer operation plan"
+            )
+        if any(not isinstance(plan, TransferOperationPlan) for plan in plans):
+            raise TypeError(
+                "transfer_operation_plans must contain TransferOperationPlan objects"
+            )
+        plan_names = [plan.name for plan in plans]
+        duplicate_plan_names = sorted(
+            name for name in set(plan_names) if plan_names.count(name) > 1
+        )
+        if duplicate_plan_names:
+            raise ValueError(
+                "transfer operation plan names must be unique within a preflight "
+                "config: " + ", ".join(duplicate_plan_names)
+            )
+
+        if (
+            isinstance(self.format_version, bool)
+            or not isinstance(self.format_version, int)
+            or self.format_version not in (
+                PREFLIGHT_CONFIG_LEGACY_VERSION,
+                PREFLIGHT_CONFIG_VERSION,
+            )
+        ):
+            raise ValueError("unsupported preflight config format_version")
+        if (
+            self.format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+            and plans != (DEFAULT_TRANSFER_OPERATION_PLAN,)
+        ):
+            raise ValueError(
+                "preflight config format_version 1 supports only the default "
+                "one-operation-per-logical-load plan"
+            )
+
         object.__setattr__(self, "expert_sizes", tuple(sorted(expert_sizes)))
         object.__setattr__(self, "capacities_bytes", tuple(sorted(set(capacities))))
         selected_policies = set(policies)
@@ -134,6 +190,11 @@ class PreflightConfig:
             self,
             "hardware_profiles",
             tuple(sorted(profiles, key=lambda profile: profile.name)),
+        )
+        object.__setattr__(
+            self,
+            "transfer_operation_plans",
+            tuple(sorted(plans, key=lambda plan: plan.name)),
         )
 
     def expert_size_map(self) -> dict[ExpertKey, int]:
@@ -157,16 +218,26 @@ def parse_preflight_config_data(payload: Any) -> PreflightConfig:
     """Validate JSON-compatible data and return canonical immutable assumptions."""
     if not isinstance(payload, Mapping):
         raise ValueError("preflight config must be a top-level JSON object")
-    _require_exact_fields(payload, _TOP_LEVEL_FIELDS, "preflight config")
+    if "format" not in payload or "format_version" not in payload:
+        _require_exact_fields(payload, _TOP_LEVEL_FIELDS_V1, "preflight config")
     if payload["format"] != PREFLIGHT_CONFIG_FORMAT:
         raise ValueError("unsupported preflight config format")
     format_version = payload["format_version"]
     if (
         isinstance(format_version, bool)
         or not isinstance(format_version, int)
-        or format_version != PREFLIGHT_CONFIG_VERSION
+        or format_version not in (
+            PREFLIGHT_CONFIG_LEGACY_VERSION,
+            PREFLIGHT_CONFIG_VERSION,
+        )
     ):
         raise ValueError("unsupported preflight config format_version")
+    expected_fields = (
+        _TOP_LEVEL_FIELDS_V1
+        if format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+        else _TOP_LEVEL_FIELDS_V2
+    )
+    _require_exact_fields(payload, expected_fields, "preflight config")
 
     expert_payload = _require_array(payload["expert_sizes"], "expert_sizes")
     capacities_payload = _require_array(
@@ -182,14 +253,29 @@ def parse_preflight_config_data(payload: Any) -> PreflightConfig:
         for index, item in enumerate(expert_payload)
     )
     profiles = tuple(
-        _parse_hardware_profile(item, index)
+        _parse_hardware_profile(item, index, format_version)
         for index, item in enumerate(profile_payload)
+    )
+    plans = (
+        (DEFAULT_TRANSFER_OPERATION_PLAN,)
+        if format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+        else tuple(
+            _parse_transfer_operation_plan(item, index)
+            for index, item in enumerate(
+                _require_array(
+                    payload["transfer_operation_plans"],
+                    "transfer_operation_plans",
+                )
+            )
+        )
     )
     return PreflightConfig(
         expert_sizes=expert_sizes,
         capacities_bytes=tuple(capacities_payload),
         policies=tuple(policies_payload),
         hardware_profiles=profiles,
+        transfer_operation_plans=plans,
+        format_version=format_version,
     )
 
 
@@ -197,9 +283,9 @@ def preflight_config_data(config: PreflightConfig) -> dict[str, Any]:
     """Return canonical JSON-compatible config assumptions."""
     if not isinstance(config, PreflightConfig):
         raise TypeError("preflight_config_data requires a PreflightConfig")
-    return {
+    payload: dict[str, Any] = {
         "format": PREFLIGHT_CONFIG_FORMAT,
-        "format_version": PREFLIGHT_CONFIG_VERSION,
+        "format_version": config.format_version,
         "expert_sizes": [
             {
                 "layer_id": item.layer_id,
@@ -216,13 +302,24 @@ def preflight_config_data(config: PreflightConfig) -> dict[str, Any]:
                 "h2d_payload_bandwidth_bytes_per_second": (
                     profile.h2d_payload_bandwidth_bytes_per_second
                 ),
-                "setup_latency_ns_per_loaded_expert": (
-                    profile.setup_latency_ns_per_loaded_expert
-                ),
+                (
+                    "setup_latency_ns_per_loaded_expert"
+                    if config.format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+                    else "setup_latency_ns_per_transfer_operation"
+                ): profile.setup_latency_ns_per_transfer_operation,
             }
             for profile in config.hardware_profiles
         ],
     }
+    if config.format_version == PREFLIGHT_CONFIG_VERSION:
+        payload["transfer_operation_plans"] = [
+            {
+                "name": plan.name,
+                "operations_per_logical_load": plan.operations_per_logical_load,
+            }
+            for plan in config.transfer_operation_plans
+        ]
+    return payload
 
 
 def _parse_expert_size_record(payload: Any, index: int) -> ExpertSizeRecord:
@@ -238,11 +335,21 @@ def _parse_expert_size_record(payload: Any, index: int) -> ExpertSizeRecord:
     )
 
 
-def _parse_hardware_profile(payload: Any, index: int) -> HardwareTransferProfile:
+def _parse_hardware_profile(
+    payload: Any,
+    index: int,
+    format_version: int,
+) -> HardwareTransferProfile:
     if not isinstance(payload, Mapping):
         raise ValueError(f"hardware_profiles[{index}] must be a JSON object")
     _require_exact_fields(
-        payload, _HARDWARE_PROFILE_FIELDS, f"hardware_profiles[{index}]"
+        payload,
+        (
+            _HARDWARE_PROFILE_FIELDS_V1
+            if format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+            else _HARDWARE_PROFILE_FIELDS_V2
+        ),
+        f"hardware_profiles[{index}]",
     )
     return HardwareTransferProfile(
         name=payload["name"],
@@ -250,8 +357,31 @@ def _parse_hardware_profile(payload: Any, index: int) -> HardwareTransferProfile
             payload["h2d_payload_bandwidth_bytes_per_second"]
         ),
         setup_latency_ns_per_loaded_expert=(
-            payload["setup_latency_ns_per_loaded_expert"]
+            payload[
+                "setup_latency_ns_per_loaded_expert"
+                if format_version == PREFLIGHT_CONFIG_LEGACY_VERSION
+                else "setup_latency_ns_per_transfer_operation"
+            ]
         ),
+    )
+
+
+def _parse_transfer_operation_plan(
+    payload: Any,
+    index: int,
+) -> TransferOperationPlan:
+    if not isinstance(payload, Mapping):
+        raise ValueError(
+            f"transfer_operation_plans[{index}] must be a JSON object"
+        )
+    _require_exact_fields(
+        payload,
+        _TRANSFER_OPERATION_PLAN_FIELDS,
+        f"transfer_operation_plans[{index}]",
+    )
+    return TransferOperationPlan(
+        name=payload["name"],
+        operations_per_logical_load=payload["operations_per_logical_load"],
     )
 
 

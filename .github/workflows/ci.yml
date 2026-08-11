@@ -54,8 +54,8 @@ jobs:
           rm -rf dist
           mkdir -p dist
           python -m build --sdist --wheel --outdir dist 2>&1 | tee dist/build.log
-          test -f dist/moe_cache_lab-0.5.0-py3-none-any.whl
-          test -f dist/moe_cache_lab-0.5.0.tar.gz
+          test -f dist/moe_cache_lab-0.6.0-py3-none-any.whl
+          test -f dist/moe_cache_lab-0.6.0.tar.gz
           if grep -Fq 'project.license' dist/build.log; then
             echo 'legacy project.license deprecation warning found in build log' >&2
             exit 1
@@ -64,9 +64,10 @@ jobs:
             echo 'legacy license-classifier deprecation warning found in build log' >&2
             exit 1
           fi
-          python scripts/audit_v05_distributions.py \
-            --wheel dist/moe_cache_lab-0.5.0-py3-none-any.whl \
-            --sdist dist/moe_cache_lab-0.5.0.tar.gz
+          python scripts/audit_distributions.py \
+            --version 0.6.0 \
+            --wheel dist/moe_cache_lab-0.6.0-py3-none-any.whl \
+            --sdist dist/moe_cache_lab-0.6.0.tar.gz
 
       - name: Audit installed final package
         run: |
@@ -76,8 +77,8 @@ jobs:
           (
             cd "$AUDIT_DIR"
             unset PYTHONPATH
-            "$VENV_DIR/bin/python" -m pip install --no-deps "$GITHUB_WORKSPACE/dist/moe_cache_lab-0.5.0-py3-none-any.whl"
-            "$VENV_DIR/bin/python" -c "import moe_cache_lab; assert moe_cache_lab.__version__ == '0.5.0'; assert 'site-packages' in moe_cache_lab.__file__"
+            "$VENV_DIR/bin/python" -m pip install --no-deps "$GITHUB_WORKSPACE/dist/moe_cache_lab-0.6.0-py3-none-any.whl"
+            "$VENV_DIR/bin/python" -c "import moe_cache_lab; assert moe_cache_lab.__version__ == '0.6.0'; assert 'site-packages' in moe_cache_lab.__file__"
             "$VENV_DIR/bin/moe-cache-lab" --help >/dev/null
             "$VENV_DIR/bin/moe-cache-lab" analyze "$GITHUB_WORKSPACE/examples/no-download-preflight/trace.jsonl" --output routing-only.md
             "$VENV_DIR/bin/moe-cache-lab" analyze "$GITHUB_WORKSPACE/examples/no-download-preflight/trace.jsonl" --preflight-config "$GITHUB_WORKSPACE/examples/no-download-preflight/preflight-config.json" --output preflight-report.md --json-output preflight-report.json
