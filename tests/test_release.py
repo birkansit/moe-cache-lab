@@ -13,8 +13,8 @@ class PublicReleaseTests(unittest.TestCase):
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         match = re.search(r'^version = "([^"]+)"$', pyproject, re.MULTILINE)
         self.assertIsNotNone(match)
-        self.assertEqual(match.group(1), "0.5.0")
-        self.assertEqual(moe_cache_lab.__version__, "0.5.0")
+        self.assertEqual(match.group(1), "0.6.0")
+        self.assertEqual(moe_cache_lab.__version__, "0.6.0")
 
     def test_current_public_docs_exist(self) -> None:
         for name in (
@@ -22,6 +22,7 @@ class PublicReleaseTests(unittest.TestCase):
             "PREFLIGHT.md",
             "V05_RELEASE_NOTES.md",
             "V05_VALIDATION.md",
+            "V06_RELEASE_NOTES.md",
             "CONTRIBUTING.md",
             "LICENSE",
         ):
@@ -38,6 +39,17 @@ class PublicReleaseTests(unittest.TestCase):
             "STAGE2_FEASIBILITY.md",
             "V04_EXPERIMENT.md",
             "V04_RESULTS.md",
+            "src/moe_cache_lab/stage1.py",
+            "src/moe_cache_lab/stage1_benchmark.py",
+            "src/moe_cache_lab/v04.py",
+            "scripts/stage2_hip_copy_probe.py",
+            "tests/test_stage1.py",
+            "tests/test_stage1_benchmark.py",
+            "tests/test_stage2_probe.py",
+            "tests/test_v04.py",
+            "tests/test_v04_cli.py",
+            "tests/test_v04_evidence.py",
+            "tests/test_v04_valid_evidence.py",
         ):
             self.assertFalse((ROOT / name).exists(), name)
 

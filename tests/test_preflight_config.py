@@ -35,6 +35,20 @@ def _config_payload() -> dict:
     }
 
 
+def _config_payload_v2() -> dict:
+    payload = _config_payload()
+    payload["format_version"] = 2
+    for profile in payload["hardware_profiles"]:
+        profile["setup_latency_ns_per_transfer_operation"] = profile.pop(
+            "setup_latency_ns_per_loaded_expert"
+        )
+    payload["transfer_operation_plans"] = [
+        {"name": "two-chunks", "operations_per_logical_load": 2},
+        {"name": "one-operation", "operations_per_logical_load": 1},
+    ]
+    return payload
+
+
 class PreflightConfigTests(unittest.TestCase):
     def test_normalizes_semantically_equivalent_input_deterministically(self) -> None:
         config = parse_preflight_config_data(_config_payload())
@@ -83,7 +97,7 @@ class PreflightConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported preflight config format"):
             parse_preflight_config_data(payload)
 
-        for invalid_version in (2, True, 1.0):
+        for invalid_version in (3, True, 1.0):
             payload = _config_payload()
             payload["format_version"] = invalid_version
             with self.subTest(format_version=invalid_version), self.assertRaisesRegex(
@@ -125,6 +139,58 @@ class PreflightConfigTests(unittest.TestCase):
         payload = _config_payload()
         payload["hardware_profiles"][0]["setup_latency_ns_per_loaded_expert"] = -1
         with self.assertRaisesRegex(ValueError, "setup latency"):
+            parse_preflight_config_data(payload)
+
+    def test_v2_transfer_operation_plans_are_strict_and_deterministic(self) -> None:
+        config = parse_preflight_config_data(_config_payload_v2())
+
+        self.assertEqual(config.format_version, 2)
+        self.assertEqual(
+            [
+                (plan.name, plan.operations_per_logical_load)
+                for plan in config.transfer_operation_plans
+            ],
+            [("one-operation", 1), ("two-chunks", 2)],
+        )
+        serialized = preflight_config_data(config)
+        self.assertEqual(serialized["format_version"], 2)
+        self.assertEqual(
+            serialized["hardware_profiles"][0][
+                "setup_latency_ns_per_transfer_operation"
+            ],
+            0,
+        )
+        self.assertNotIn(
+            "setup_latency_ns_per_loaded_expert",
+            serialized["hardware_profiles"][0],
+        )
+
+        reordered = _config_payload_v2()
+        reordered["transfer_operation_plans"].reverse()
+        self.assertEqual(
+            serialized,
+            preflight_config_data(parse_preflight_config_data(reordered)),
+        )
+
+    def test_v2_transfer_operation_plan_invalid_inputs_reject(self) -> None:
+        payload = _config_payload_v2()
+        payload["transfer_operation_plans"] = []
+        with self.assertRaisesRegex(ValueError, "at least one transfer operation plan"):
+            parse_preflight_config_data(payload)
+
+        payload = _config_payload_v2()
+        payload["transfer_operation_plans"][0]["operations_per_logical_load"] = 0
+        with self.assertRaisesRegex(ValueError, "operations_per_logical_load"):
+            parse_preflight_config_data(payload)
+
+        payload = _config_payload_v2()
+        payload["transfer_operation_plans"][1]["name"] = "two-chunks"
+        with self.assertRaisesRegex(ValueError, "plan names must be unique"):
+            parse_preflight_config_data(payload)
+
+        payload = _config_payload_v2()
+        payload["hardware_profiles"][0]["setup_latency_ns_per_loaded_expert"] = 1
+        with self.assertRaisesRegex(ValueError, "unknown fields"):
             parse_preflight_config_data(payload)
 
     def test_read_preflight_config_parses_json_file(self) -> None:

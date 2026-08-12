@@ -42,6 +42,15 @@ def main() -> None:
     analyze.add_argument("--json-output", type=Path)
     analyze.add_argument("--preflight-config", type=Path)
 
+    lifecycle = commands.add_parser(
+        "analyze-lifecycle",
+        help="compare cold and persistent byte-cache scenarios for a corpus manifest",
+    )
+    lifecycle.add_argument("manifest", type=Path)
+    lifecycle.add_argument("--preflight-config", type=Path, required=True)
+    lifecycle.add_argument("--output", type=Path, required=True)
+    lifecycle.add_argument("--json-output", type=Path, required=True)
+
     benchmark = commands.add_parser(
         "benchmark",
         help="simulate count-capacity policies and write a Markdown report",
@@ -124,6 +133,31 @@ def main() -> None:
 
         if args.json_output is not None:
             write_report(args.json_output, json_report)
+
+    elif args.command == "analyze-lifecycle":
+        from .preflight import run_preflight_lifecycle_analysis
+        from .preflight_config import read_preflight_config
+        from .preflight_output import (
+            render_preflight_lifecycle_json,
+            render_preflight_lifecycle_report,
+        )
+
+        lifecycle_result = run_preflight_lifecycle_analysis(
+            args.manifest,
+            read_preflight_config(args.preflight_config),
+        )
+        print(
+            write_report(
+                args.output,
+                render_preflight_lifecycle_report(lifecycle_result),
+            )
+        )
+        print(
+            write_report(
+                args.json_output,
+                render_preflight_lifecycle_json(lifecycle_result),
+            )
+        )
 
     elif args.command == "benchmark":
         trace = read_trace(args.trace)

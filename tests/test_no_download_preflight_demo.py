@@ -87,6 +87,80 @@ class NoDownloadPreflightDemoTests(unittest.TestCase):
             )
         )
 
+    def test_v2_transfer_operation_demo_is_offline_and_deterministic(self) -> None:
+        config_payload = json.loads(
+            (DEMO / "preflight-config.json").read_text(encoding="utf-8")
+        )
+        config_payload["format_version"] = 2
+        for profile in config_payload["hardware_profiles"]:
+            profile["setup_latency_ns_per_transfer_operation"] = profile.pop(
+                "setup_latency_ns_per_loaded_expert"
+            )
+        config_payload["transfer_operation_plans"] = [
+            {"name": "one-operation", "operations_per_logical_load": 1},
+            {"name": "two-chunks", "operations_per_logical_load": 2},
+        ]
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            config_path = directory / "preflight-v2.json"
+            config_path.write_text(
+                json.dumps(config_payload), encoding="utf-8"
+            )
+            output_pairs: list[tuple[bytes, bytes]] = []
+            for run_number in (1, 2):
+                markdown = directory / f"report-{run_number}.md"
+                json_output = directory / f"report-{run_number}.json"
+                with patch(
+                    "moe_cache_lab.cli.collect_trace",
+                    side_effect=AssertionError(
+                        "offline demo must not collect or download a model"
+                    ),
+                ), patch(
+                    "sys.argv",
+                    [
+                        "moe-cache-lab",
+                        "analyze",
+                        str(DEMO / "trace.jsonl"),
+                        "--preflight-config",
+                        str(config_path),
+                        "--output",
+                        str(markdown),
+                        "--json-output",
+                        str(json_output),
+                    ],
+                ):
+                    main()
+                output_pairs.append((markdown.read_bytes(), json_output.read_bytes()))
+
+        self.assertEqual(output_pairs[0], output_pairs[1])
+        payload = json.loads(output_pairs[0][1])
+        self.assertEqual(payload["format_version"], 2)
+        rows = payload["estimated_transfer_service_sensitivity"]
+        one = next(
+            row for row in rows
+            if row["transfer_operation_plan_name"] == "one-operation"
+        )
+        two = next(
+            row for row in rows
+            if row["transfer_operation_plan_name"] == "two-chunks"
+            and row["cache_capacity_bytes"] == one["cache_capacity_bytes"]
+            and row["policy"] == one["policy"]
+            and row["hardware_profile_name"] == one["hardware_profile_name"]
+        )
+        self.assertEqual(
+            two["modeled_transfer_operation_count"],
+            2 * one["modeled_transfer_operation_count"],
+        )
+        self.assertEqual(
+            two["simulated_logical_demand_load_count"],
+            one["simulated_logical_demand_load_count"],
+        )
+        self.assertEqual(
+            two["simulated_demand_load_bytes"],
+            one["simulated_demand_load_bytes"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

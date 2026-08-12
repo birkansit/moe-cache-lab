@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 
 from moe_cache_lab.analysis import analyze_routing
-from moe_cache_lab.hardware_cost import HardwareTransferProfile
+from moe_cache_lab.hardware_cost import HardwareTransferProfile, TransferOperationPlan
 from moe_cache_lab.preflight import run_preflight_analysis
 from moe_cache_lab.preflight_config import (
     ExpertSizeRecord,
@@ -71,6 +71,20 @@ def _config_payload_reordered() -> dict:
     }
 
 
+def _config_v2() -> PreflightConfig:
+    return PreflightConfig(
+        expert_sizes=_config().expert_sizes,
+        capacities_bytes=_config().capacities_bytes,
+        policies=_config().policies,
+        hardware_profiles=_config().hardware_profiles,
+        transfer_operation_plans=(
+            TransferOperationPlan("two-chunks", 2),
+            TransferOperationPlan("one-operation", 1),
+        ),
+        format_version=2,
+    )
+
+
 class PreflightAnalysisTests(unittest.TestCase):
     def test_combined_result_reuses_existing_analysis_and_sweep_cores(self) -> None:
         routing = analyze_routing(_trace())
@@ -91,6 +105,26 @@ class PreflightAnalysisTests(unittest.TestCase):
         )
         self.assertIs(result.routing, routing)
         self.assertIs(result.transfer_sensitivity, sentinel_sweep)
+
+    def test_v2_combined_result_passes_explicit_operation_plans_to_sweep(self) -> None:
+        routing = analyze_routing(_trace())
+        sentinel_sweep = object()
+        with patch(
+            "moe_cache_lab.preflight.analyze_routing", return_value=routing
+        ), patch(
+            "moe_cache_lab.preflight.run_transfer_sensitivity_sweep",
+            return_value=sentinel_sweep,
+        ) as sweep_core:
+            run_preflight_analysis(_trace(), _config_v2())
+
+        sweep_core.assert_called_once_with(
+            _trace().events,
+            {(0, 0): 4, (0, 1): 2, (0, 2): 2},
+            (6, 8),
+            ("lru", "lfu"),
+            _config_v2().hardware_profiles,
+            _config_v2().transfer_operation_plans,
+        )
 
     def test_report_separates_evidence_classes_and_assumptions(self) -> None:
         report = render_preflight_report(run_preflight_analysis(_trace(), _config()))
@@ -160,6 +194,53 @@ class PreflightAnalysisTests(unittest.TestCase):
             [(row["capacity_bytes"], row["policy"]) for row in simulated],
             [(6, "lru"), (6, "lfu"), (8, "lru"), (8, "lfu")],
         )
+
+    def test_v2_output_audits_logical_loads_and_modeled_operations(self) -> None:
+        result = run_preflight_analysis(_trace(), _config_v2())
+        payload = json.loads(render_preflight_json(result))
+
+        self.assertEqual(payload["format_version"], 2)
+        self.assertEqual(payload["config"]["format_version"], 2)
+        rows = payload["estimated_transfer_service_sensitivity"]
+        self.assertEqual(
+            [
+                (
+                    row["cache_capacity_bytes"],
+                    row["policy"],
+                    row["hardware_profile_name"],
+                    row["transfer_operation_plan_name"],
+                )
+                for row in rows[:4]
+            ],
+            [
+                (6, "lru", "a", "one-operation"),
+                (6, "lru", "a", "two-chunks"),
+                (6, "lru", "z", "one-operation"),
+                (6, "lru", "z", "two-chunks"),
+            ],
+        )
+        one, two = rows[0], rows[1]
+        self.assertEqual(one["simulated_logical_demand_load_count"], 3)
+        self.assertEqual(two["simulated_logical_demand_load_count"], 3)
+        self.assertEqual(one["modeled_transfer_operation_count"], 3)
+        self.assertEqual(two["modeled_transfer_operation_count"], 6)
+        self.assertEqual(one["simulated_demand_load_bytes"], 8)
+        self.assertEqual(two["simulated_demand_load_bytes"], 8)
+        self.assertEqual(
+            one["estimated_setup_service_seconds"],
+            {"numerator": 3, "denominator": 1},
+        )
+        self.assertEqual(
+            two["estimated_setup_service_seconds"],
+            {"numerator": 6, "denominator": 1},
+        )
+
+        report = render_preflight_report(result)
+        self.assertIn("modeled operations", report)
+        self.assertIn("setup ns/operation", report)
+        self.assertIn("does not establish how packed model parameters move", report)
+        self.assertIn("ESTIMATED", report)
+        self.assertNotIn("measured speedup", report.lower())
 
     def test_semantically_equivalent_config_produces_identical_outputs(self) -> None:
         left = run_preflight_analysis(_trace(), _config())

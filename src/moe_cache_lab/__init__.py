@@ -2,6 +2,6 @@
 
 from .trace import RoutingEvent, RoutingTrace
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = ["RoutingEvent", "RoutingTrace", "__version__"]

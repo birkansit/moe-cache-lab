@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "moe-cache-lab"
-version = "0.5.0"
+version = "0.6.0"
 description = "Trace-driven MoE pre-flight analysis for expert caching/offloading research."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,3 +28,10 @@ Issues = "https://github.com/birkansit/moe-cache-lab/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.data-files]
+"share/doc/moe-cache-lab" = [
+  "README.md",
+  "PREFLIGHT.md",
+  "V06_RELEASE_NOTES.md",
+]
