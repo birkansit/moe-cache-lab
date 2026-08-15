@@ -4,6 +4,20 @@ The pre-flight workflow analyzes an existing compatible routing trace without ru
 
 The built-in collector is currently Granite/Transformers-specific. After trace creation, this pre-flight path is driven by the repository routing-trace format and core analysis APIs rather than by Granite model execution.
 
+## Trace-version boundary
+
+The established byte-cache pre-flight configuration and report pipeline is for
+canonical routing trace **v1 only**. Its expert-size identities are
+`(layer_id, expert_id)`. Existing v1 inputs and outputs remain supported without
+semantic changes.
+
+Canonical trace v2 is available through the version-aware descriptive
+`analyze` path, but `analyze --preflight-config` intentionally rejects v2. A v2
+expert identity is stage-qualified as `(routing_stage, layer, expert_id)`;
+encoder and decoder layers must never be flattened together or given invented
+numeric offsets. Stage-qualified v2 pre-flight simulation is outside the
+current contract.
+
 ## Tracked no-download demo
 
 A deterministic synthetic example is tracked at [`examples/no-download-preflight/`](examples/no-download-preflight/). It requires no model download, GPU, CUDA/ROCm, or vendor SDK:

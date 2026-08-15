@@ -1,0 +1,78 @@
+{
+  "format": "moe-cache-lab.prompt-corpus",
+  "version": "1.0",
+  "prompts": [
+    {
+      "id": "cal-factual-01",
+      "category": "factual",
+      "split": "calibration",
+      "text": "What is the capital of France? Answer briefly."
+    },
+    {
+      "id": "cal-coding-01",
+      "category": "simple-coding",
+      "split": "calibration",
+      "text": "Write a short Python function that adds two numbers."
+    },
+    {
+      "id": "cal-math-01",
+      "category": "basic-math",
+      "split": "calibration",
+      "text": "Calculate 17 + 25 and give only the result."
+    },
+    {
+      "id": "cal-conversation-01",
+      "category": "conversation",
+      "split": "calibration",
+      "text": "Reply warmly to: Hello, how are you today?"
+    },
+    {
+      "id": "eval-factual-01",
+      "category": "factual",
+      "split": "evaluation",
+      "text": "At what temperature does water freeze in Celsius?"
+    },
+    {
+      "id": "eval-factual-02",
+      "category": "factual",
+      "split": "evaluation",
+      "text": "Name the largest planet in our solar system."
+    },
+    {
+      "id": "eval-coding-01",
+      "category": "simple-coding",
+      "split": "evaluation",
+      "text": "Show one Python expression that reverses a string named s."
+    },
+    {
+      "id": "eval-coding-02",
+      "category": "simple-coding",
+      "split": "evaluation",
+      "text": "Write a tiny Python check for whether n is even."
+    },
+    {
+      "id": "eval-math-01",
+      "category": "basic-math",
+      "split": "evaluation",
+      "text": "A box has 6 rows of 4 apples. How many apples are there?"
+    },
+    {
+      "id": "eval-summary-01",
+      "category": "summarization",
+      "split": "evaluation",
+      "text": "Summarize briefly: The rain stopped, the clouds cleared, and the children returned outside."
+    },
+    {
+      "id": "eval-reasoning-01",
+      "category": "basic-reasoning",
+      "split": "evaluation",
+      "text": "If all blue cards are numbered and this card is blue, what follows?"
+    },
+    {
+      "id": "eval-conversation-01",
+      "category": "conversation",
+      "split": "evaluation",
+      "text": "A friend says they finished a difficult task. Give a short supportive reply."
+    }
+  ]
+}

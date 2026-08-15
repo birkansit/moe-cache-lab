@@ -1,0 +1,1425 @@
+{
+  "corpus": {
+    "canonical_json_sha256": "67144988f37ae14134aa83ca4b447f5119e96597dec4ab7158fc1f2592e6be2c",
+    "path": "corpus.json",
+    "version": "1.0"
+  },
+  "created_at": "2026-08-08T19:34:43.316250+00:00",
+  "environment": {
+    "device": "cpu",
+    "dtype": "float32",
+    "hf_hub_disable_telemetry": true,
+    "hf_hub_offline": true,
+    "local_files_only": true,
+    "mkl_num_threads": "4",
+    "moe_cache_lab": "0.2.0",
+    "omp_num_threads": "4",
+    "python": "3.10.11",
+    "torch": "2.12.0+cpu",
+    "torch_num_threads": 4,
+    "transformers": "5.12.0",
+    "transformers_offline": true
+  },
+  "format": "moe-cache-lab.stage1-repetition-manifest",
+  "format_version": 1,
+  "generation": {
+    "do_sample": false,
+    "max_decode_input_steps": 16,
+    "protocol": "candidate-before-feed-eos-v1",
+    "strategy": "greedy",
+    "token_selection": "argmax",
+    "use_cache": true
+  },
+  "model_id": "ibm-granite/granite-3.1-1b-a400m-instruct",
+  "model_revision": {
+    "requested": "0da7a48b0276d500ce5922fd2b33944091fc6c09",
+    "resolved": "0da7a48b0276d500ce5922fd2b33944091fc6c09"
+  },
+  "process": {
+    "elapsed_seconds": 45.84300000000076,
+    "finished_at": "2026-08-08T19:34:43.316250+00:00",
+    "parent_pid": 8852,
+    "pid": 11332,
+    "started_at": "2026-08-08T19:33:57.465216+00:00",
+    "uuid": "05ab3604-b0ca-4cf9-a93d-e3af41b37f1e"
+  },
+  "prompts": [
+    {
+      "category": "factual",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\nA. Paris\nB. Lyon\nC. Marse",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          51,
+          32,
+          2716,
+          297,
+          203,
+          52,
+          32,
+          498,
+          39500,
+          203,
+          53,
+          32,
+          8359,
+          277
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          51,
+          32,
+          2716,
+          297,
+          203,
+          52,
+          32,
+          498,
+          39500,
+          203,
+          53,
+          32,
+          8359,
+          277
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "cal-factual-01",
+      "measured": {
+        "expert_request_count": 5184,
+        "generated_event_count": 384,
+        "prompt_event_count": 264,
+        "routing_event_count": 648
+      },
+      "order": 0,
+      "prompt_sha256": "87867a835fb23e91329cee573f1d5aef9ce44089c622d73d7184eda979f9e353",
+      "split": "calibration",
+      "trace_path": "traces/00-cal-factual-01.jsonl",
+      "trace_sha256": "01301594fd86bef71a694d712034f8fcba44923880056f95d1a315eab5bceed9",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 30,
+            "requests": 3730,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 30,
+            "requests": 658,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 648,
+            "max_bundle_size": 8,
+            "requests": 5184,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 264,
+            "max_bundle_size": 8,
+            "requests": 2112,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        }
+      }
+    },
+    {
+      "category": "simple-coding",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\n```python\ndef add_two_numbers(a, b):",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          1015,
+          81,
+          8268,
+          81,
+          14951,
+          26,
+          83,
+          30,
+          323,
+          711
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          1015,
+          81,
+          8268,
+          81,
+          14951,
+          26,
+          83,
+          30,
+          323,
+          711
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "cal-coding-01",
+      "measured": {
+        "expert_request_count": 4992,
+        "generated_event_count": 384,
+        "prompt_event_count": 240,
+        "routing_event_count": 624
+      },
+      "order": 1,
+      "prompt_sha256": "5ad04dfd72a3782b3a96f157aac29d64af099f94642716126b191a7b894c43a9",
+      "split": "calibration",
+      "trace_path": "traces/01-cal-coding-01.jsonl",
+      "trace_sha256": "0feb1809a3359960ea996734d3838111c106211b6ec0b8a158c42992534b9461",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 30,
+            "requests": 3709,
+            "source_assignments": 4992,
+            "source_events": 624
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 30,
+            "requests": 637,
+            "source_assignments": 1920,
+            "source_events": 240
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 624,
+            "max_bundle_size": 8,
+            "requests": 4992,
+            "source_assignments": 4992,
+            "source_events": 624
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 240,
+            "max_bundle_size": 8,
+            "requests": 1920,
+            "source_assignments": 1920,
+            "source_events": 240
+          }
+        }
+      }
+    },
+    {
+      "category": "basic-math",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\n17 + 25 = 42\n\nAnswer:",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          35,
+          41,
+          474,
+          225,
+          36,
+          39,
+          280,
+          225,
+          38,
+          36,
+          203,
+          203,
+          10963,
+          44
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          35,
+          41,
+          474,
+          225,
+          36,
+          39,
+          280,
+          225,
+          38,
+          36,
+          203,
+          203,
+          10963,
+          44
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "cal-math-01",
+      "measured": {
+        "expert_request_count": 5760,
+        "generated_event_count": 384,
+        "prompt_event_count": 336,
+        "routing_event_count": 720
+      },
+      "order": 2,
+      "prompt_sha256": "67b772700b1c8ac77846e3d972e5fb9c2662aa9abc7b4f09d8530105ee6a3e72",
+      "split": "calibration",
+      "trace_path": "traces/02-cal-math-01.jsonl",
+      "trace_sha256": "1dfe80bae4ba97d9abbf58e3c94c9eca28e360bc68825c8f1aadf8378d3894af",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 32,
+            "requests": 3727,
+            "source_assignments": 5760,
+            "source_events": 720
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 32,
+            "requests": 655,
+            "source_assignments": 2688,
+            "source_events": 336
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 720,
+            "max_bundle_size": 8,
+            "requests": 5760,
+            "source_assignments": 5760,
+            "source_events": 720
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 336,
+            "max_bundle_size": 8,
+            "requests": 2688,
+            "source_assignments": 2688,
+            "source_events": 336
+          }
+        }
+      }
+    },
+    {
+      "category": "conversation",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\nDear [Recipient's Name],\n\nThank you for your warm",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          685,
+          282,
+          428,
+          23311,
+          1182,
+          3270,
+          614,
+          203,
+          203,
+          15868,
+          844,
+          436,
+          1370,
+          32794
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          685,
+          282,
+          428,
+          23311,
+          1182,
+          3270,
+          614,
+          203,
+          203,
+          15868,
+          844,
+          436,
+          1370,
+          32794
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "cal-conversation-01",
+      "measured": {
+        "expert_request_count": 5376,
+        "generated_event_count": 384,
+        "prompt_event_count": 288,
+        "routing_event_count": 672
+      },
+      "order": 3,
+      "prompt_sha256": "336397ea52577761c755a4e5327fc5afea0cebd28855962920a7fd25beef03ed",
+      "split": "calibration",
+      "trace_path": "traces/03-cal-conversation-01.jsonl",
+      "trace_sha256": "c2b137a88764f8126a9167a426c4625ea7f95048cc2d8b59ab1643d49b3aa5c7",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 31,
+            "requests": 3700,
+            "source_assignments": 5376,
+            "source_events": 672
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 31,
+            "requests": 628,
+            "source_assignments": 2304,
+            "source_events": 288
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 672,
+            "max_bundle_size": 8,
+            "requests": 5376,
+            "source_assignments": 5376,
+            "source_events": 672
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 288,
+            "max_bundle_size": 8,
+            "requests": 2304,
+            "source_assignments": 2304,
+            "source_events": 288
+          }
+        }
+      }
+    },
+    {
+      "category": "factual",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\nThe temperature at which water freezes is 0°C (3",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          1318,
+          13587,
+          821,
+          1510,
+          13408,
+          3741,
+          20573,
+          438,
+          225,
+          34,
+          23767,
+          53,
+          308,
+          37
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          1318,
+          13587,
+          821,
+          1510,
+          13408,
+          3741,
+          20573,
+          438,
+          225,
+          34,
+          23767,
+          53,
+          308,
+          37
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-factual-01",
+      "measured": {
+        "expert_request_count": 5184,
+        "generated_event_count": 384,
+        "prompt_event_count": 264,
+        "routing_event_count": 648
+      },
+      "order": 4,
+      "prompt_sha256": "fd9aec15860aa2c799a4b795884623a807b165fa57e920a2f1ae564357700c4d",
+      "split": "evaluation",
+      "trace_path": "traces/04-eval-factual-01.jsonl",
+      "trace_sha256": "74a920112664e770f1db243eb5efae994f6f2eaff6e7f8e0b905d7d845fb9f7b",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 32,
+            "requests": 3755,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 32,
+            "requests": 683,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 648,
+            "max_bundle_size": 8,
+            "requests": 5184,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 264,
+            "max_bundle_size": 8,
+            "requests": 2112,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        }
+      }
+    },
+    {
+      "category": "factual",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\nAnswer:\n\nThe largest planet in our solar system is Jupiter",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          10963,
+          44,
+          203,
+          203,
+          1318,
+          22909,
+          34127,
+          328,
+          2992,
+          44909,
+          2664,
+          438,
+          971,
+          13706
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          10963,
+          44,
+          203,
+          203,
+          1318,
+          22909,
+          34127,
+          328,
+          2992,
+          44909,
+          2664,
+          438,
+          971,
+          13706
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-factual-02",
+      "measured": {
+        "expert_request_count": 4800,
+        "generated_event_count": 384,
+        "prompt_event_count": 216,
+        "routing_event_count": 600
+      },
+      "order": 5,
+      "prompt_sha256": "c0e8d0677f03f40cbfa747d0a6909f76455edbc9df490a6735c667d6a7b7afdd",
+      "split": "evaluation",
+      "trace_path": "traces/05-eval-factual-02.jsonl",
+      "trace_sha256": "5f1eff5b259490e0cdc79bb72a9b723c5f617e88797e67020696f940900d0f9d",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 31,
+            "requests": 3713,
+            "source_assignments": 4800,
+            "source_events": 600
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 31,
+            "requests": 641,
+            "source_assignments": 1728,
+            "source_events": 216
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 600,
+            "max_bundle_size": 8,
+            "requests": 4800,
+            "source_assignments": 4800,
+            "source_events": 600
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 216,
+            "max_bundle_size": 8,
+            "requests": 1728,
+            "source_assignments": 1728,
+            "source_events": 216
+          }
+        }
+      }
+    },
+    {
+      "category": "simple-coding",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\n```python\ndef reverse_string(s):\n    return s[",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          10156,
+          81,
+          800,
+          26,
+          101,
+          711,
+          284,
+          442,
+          309,
+          77
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          10156,
+          81,
+          800,
+          26,
+          101,
+          711,
+          284,
+          442,
+          309,
+          77
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-coding-01",
+      "measured": {
+        "expert_request_count": 5568,
+        "generated_event_count": 384,
+        "prompt_event_count": 312,
+        "routing_event_count": 696
+      },
+      "order": 6,
+      "prompt_sha256": "ffcb991c6896a8d87ed477def40d219a4aa1cafbac5705bd9b88fb2017768705",
+      "split": "evaluation",
+      "trace_path": "traces/06-eval-coding-01.jsonl",
+      "trace_sha256": "8f6a5f299bc64780302822e93e2cca8e5d6edf5ab668ee243191f0ce55623f8b",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 31,
+            "requests": 3740,
+            "source_assignments": 5568,
+            "source_events": 696
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 31,
+            "requests": 668,
+            "source_assignments": 2496,
+            "source_events": 312
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 696,
+            "max_bundle_size": 8,
+            "requests": 5568,
+            "source_assignments": 5568,
+            "source_events": 696
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 312,
+            "max_bundle_size": 8,
+            "requests": 2496,
+            "source_assignments": 2496,
+            "source_events": 312
+          }
+        }
+      }
+    },
+    {
+      "category": "simple-coding",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\n```python\ndef is_even(n):\n    return n %",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          438,
+          81,
+          11083,
+          26,
+          96,
+          711,
+          284,
+          442,
+          310,
+          904
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          914,
+          2958,
+          203,
+          589,
+          438,
+          81,
+          11083,
+          26,
+          96,
+          711,
+          284,
+          442,
+          310,
+          904
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-coding-02",
+      "measured": {
+        "expert_request_count": 5184,
+        "generated_event_count": 384,
+        "prompt_event_count": 264,
+        "routing_event_count": 648
+      },
+      "order": 7,
+      "prompt_sha256": "10d371465ae8683c9c19a39c5fbe386106dfda45ef89d1fd9ce02d60e05c1297",
+      "split": "evaluation",
+      "trace_path": "traces/07-eval-coding-02.jsonl",
+      "trace_sha256": "13d3cab4fd13daa7fc253e487275f8ba7545bc9b45fa42dfaf3291af039862c2",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 32,
+            "requests": 3732,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 32,
+            "requests": 660,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 648,
+            "max_bundle_size": 8,
+            "requests": 5184,
+            "source_assignments": 5184,
+            "source_events": 648
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 264,
+            "max_bundle_size": 8,
+            "requests": 2112,
+            "source_assignments": 2112,
+            "source_events": 264
+          }
+        }
+      }
+    },
+    {
+      "category": "basic-math",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\nAnswer Chootypes:\n\nA. 144\nB.",
+        "emitted_non_eos_token_ids": [
+          203,
+          10963,
+          32186,
+          31364,
+          44,
+          203,
+          203,
+          51,
+          32,
+          225,
+          35,
+          38,
+          38,
+          203,
+          52,
+          32
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          10963,
+          32186,
+          31364,
+          44,
+          203,
+          203,
+          51,
+          32,
+          225,
+          35,
+          38,
+          38,
+          203,
+          52,
+          32
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-math-01",
+      "measured": {
+        "expert_request_count": 6720,
+        "generated_event_count": 384,
+        "prompt_event_count": 456,
+        "routing_event_count": 840
+      },
+      "order": 8,
+      "prompt_sha256": "77794723d184eb6d608c9d97314490fd2ab002681368d72acfc3f7d1ee6684aa",
+      "split": "evaluation",
+      "trace_path": "traces/08-eval-math-01.jsonl",
+      "trace_sha256": "d5a26c3454a5986c96559f7dbb200164fca5584687e51fa63ae34f1b1a54006d",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 32,
+            "requests": 3771,
+            "source_assignments": 6720,
+            "source_events": 840
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 32,
+            "requests": 699,
+            "source_assignments": 3648,
+            "source_events": 456
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 840,
+            "max_bundle_size": 8,
+            "requests": 6720,
+            "source_assignments": 6720,
+            "source_events": 840
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 456,
+            "max_bundle_size": 8,
+            "requests": 3648,
+            "source_assignments": 3648,
+            "source_events": 456
+          }
+        }
+      }
+    },
+    {
+      "category": "summarization",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": " The children were excited to play in the rain. They played games, made",
+        "emitted_non_eos_token_ids": [
+          886,
+          5713,
+          4528,
+          13489,
+          13603,
+          372,
+          4654,
+          328,
+          322,
+          36987,
+          32,
+          11228,
+          29906,
+          19705,
+          30,
+          5590
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          886,
+          5713,
+          4528,
+          13489,
+          13603,
+          372,
+          4654,
+          328,
+          322,
+          36987,
+          32,
+          11228,
+          29906,
+          19705,
+          30,
+          5590
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-summary-01",
+      "measured": {
+        "expert_request_count": 6912,
+        "generated_event_count": 384,
+        "prompt_event_count": 480,
+        "routing_event_count": 864
+      },
+      "order": 9,
+      "prompt_sha256": "15e466f6980b97825a0d5319462bc2287ad61b3db6c578b439528ad2efd5d4f1",
+      "split": "evaluation",
+      "trace_path": "traces/09-eval-summary-01.jsonl",
+      "trace_sha256": "5c09b7e960304bf29b93a6011bf5bacff1bb2a0e2f6a5949111a922ee84e940c",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 31,
+            "requests": 3767,
+            "source_assignments": 6912,
+            "source_events": 864
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 31,
+            "requests": 695,
+            "source_assignments": 3840,
+            "source_events": 480
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 864,
+            "max_bundle_size": 8,
+            "requests": 6912,
+            "source_assignments": 6912,
+            "source_events": 864
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 480,
+            "max_bundle_size": 8,
+            "requests": 3840,
+            "source_assignments": 3840,
+            "source_events": 480
+          }
+        }
+      }
+    },
+    {
+      "category": "basic-reasoning",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\nAnswer Choices: (A) 1000 (B)",
+        "emitted_non_eos_token_ids": [
+          203,
+          10963,
+          32186,
+          1343,
+          44,
+          308,
+          51,
+          27,
+          225,
+          35,
+          34,
+          34,
+          34,
+          308,
+          52,
+          27
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          10963,
+          32186,
+          1343,
+          44,
+          308,
+          51,
+          27,
+          225,
+          35,
+          34,
+          34,
+          34,
+          308,
+          52,
+          27
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-reasoning-01",
+      "measured": {
+        "expert_request_count": 6144,
+        "generated_event_count": 384,
+        "prompt_event_count": 384,
+        "routing_event_count": 768
+      },
+      "order": 10,
+      "prompt_sha256": "bd7848c62fd6ecdd2d15049a99d55d7e3b4ad3c68c561a7c6e1d978da47b00aa",
+      "split": "evaluation",
+      "trace_path": "traces/10-eval-reasoning-01.jsonl",
+      "trace_sha256": "d3d6a37ca26e1aed11525bbf4091cb1ee89ed5a423a6a286623512863e74afb6",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 31,
+            "requests": 3741,
+            "source_assignments": 6144,
+            "source_events": 768
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 31,
+            "requests": 669,
+            "source_assignments": 3072,
+            "source_events": 384
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 768,
+            "max_bundle_size": 8,
+            "requests": 6144,
+            "source_assignments": 6144,
+            "source_events": 768
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          }
+        }
+      }
+    },
+    {
+      "category": "conversation",
+      "eos": {
+        "actual_decode_input_steps_routed": 16,
+        "emitted_non_eos_text": "\n\nFriend: \"That's great! I'm so proud of you",
+        "emitted_non_eos_token_ids": [
+          203,
+          203,
+          18873,
+          44,
+          313,
+          4974,
+          1182,
+          8040,
+          19,
+          439,
+          3464,
+          1259,
+          534,
+          836,
+          432,
+          844
+        ],
+        "eos_emitted": false,
+        "horizon_exhausted": true,
+        "max_decode_input_steps_requested": 16,
+        "normalized_eos_token_ids": [
+          0
+        ],
+        "routed_non_eos_token_ids": [
+          203,
+          203,
+          18873,
+          44,
+          313,
+          4974,
+          1182,
+          8040,
+          19,
+          439,
+          3464,
+          1259,
+          534,
+          836,
+          432,
+          844
+        ],
+        "terminal_eos_candidate_position": null,
+        "terminal_eos_text": null,
+        "terminal_eos_token_id": null
+      },
+      "id": "eval-conversation-01",
+      "measured": {
+        "expert_request_count": 6144,
+        "generated_event_count": 384,
+        "prompt_event_count": 384,
+        "routing_event_count": 768
+      },
+      "order": 11,
+      "prompt_sha256": "e1cd3b50ad66266fd088a1b2cc383c0e34e77c895befbd10c01a739b913c1e28",
+      "split": "evaluation",
+      "trace_path": "traces/11-eval-conversation-01.jsonl",
+      "trace_sha256": "ea28e128ecf711add983e5320353a17251a48ab7e7fa08d5907106f80a3f8c52",
+      "views": {
+        "prefill_layer_union_atomic": {
+          "combined": {
+            "bundles": 408,
+            "max_bundle_size": 32,
+            "requests": 3718,
+            "source_assignments": 6144,
+            "source_events": 768
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 24,
+            "max_bundle_size": 32,
+            "requests": 646,
+            "source_assignments": 3072,
+            "source_events": 384
+          }
+        },
+        "token_layer_atomic": {
+          "combined": {
+            "bundles": 768,
+            "max_bundle_size": 8,
+            "requests": 6144,
+            "source_assignments": 6144,
+            "source_events": 768
+          },
+          "generated": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          },
+          "prompt": {
+            "bundles": 384,
+            "max_bundle_size": 8,
+            "requests": 3072,
+            "source_assignments": 3072,
+            "source_events": 384
+          }
+        }
+      }
+    }
+  ],
+  "repetition_number": 1,
+  "routing": {
+    "capture_method": "PyTorch forward hooks on Granite MoE router modules; greedy autoregressive forward calls for generated tokens",
+    "experts_per_layer": 32,
+    "routed_layer_count": 24,
+    "routed_layer_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "selected_experts_per_token": 8
+  }
+}

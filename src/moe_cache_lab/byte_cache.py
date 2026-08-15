@@ -10,9 +10,11 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
-from .trace import ExpertKey, RoutingEvent
+from .trace import ExpertKey, RoutingEvent, RoutingTrace
+from .trace_v2 import RoutingExpertKeyV2, RoutingTraceV2, VersionedRoutingTrace
 
 CACHE_LIFECYCLE_MODES = ("cold_per_workload", "persistent_sequence")
+VersionedExpertKey = ExpertKey | RoutingExpertKeyV2
 
 
 @dataclass(frozen=True)
@@ -35,7 +37,7 @@ class ByteCacheSimulation:
     simulated_evicted_bytes: int
     peak_resident_bytes: int
     final_resident_bytes: int
-    final_resident_keys: tuple[ExpertKey, ...]
+    final_resident_keys: tuple[VersionedExpertKey, ...]
 
     @property
     def hit_rate(self) -> float:
@@ -134,29 +136,31 @@ class _ByteDynamicCache:
     def __init__(
         self,
         capacity_bytes: int,
-        expert_sizes_bytes: Mapping[ExpertKey, int],
+        expert_sizes_bytes: Mapping[VersionedExpertKey, int],
     ) -> None:
         self.capacity_bytes = capacity_bytes
         self.expert_sizes_bytes = expert_sizes_bytes
         self.clock = 0
 
     @property
-    def resident_keys(self) -> frozenset[ExpertKey]:
+    def resident_keys(self) -> frozenset[VersionedExpertKey]:
         raise NotImplementedError
 
     @property
     def resident_bytes(self) -> int:
         return sum(self.expert_sizes_bytes[key] for key in self.resident_keys)
 
-    def _evict_one(self, candidates: frozenset[ExpertKey]) -> ExpertKey:
+    def _evict_one(
+        self, candidates: frozenset[VersionedExpertKey]
+    ) -> VersionedExpertKey:
         raise NotImplementedError
 
-    def _touch_required(self, required: frozenset[ExpertKey]) -> None:
+    def _touch_required(self, required: frozenset[VersionedExpertKey]) -> None:
         raise NotImplementedError
 
     def access_bundle(
         self,
-        required: frozenset[ExpertKey],
+        required: frozenset[VersionedExpertKey],
     ) -> tuple[int, int, int, int, int, int]:
         """Access one atomic pinned working set and return simulated accounting."""
 
@@ -207,21 +211,23 @@ class _ByteLRUCache(_ByteDynamicCache):
     def __init__(
         self,
         capacity_bytes: int,
-        expert_sizes_bytes: Mapping[ExpertKey, int],
+        expert_sizes_bytes: Mapping[VersionedExpertKey, int],
     ) -> None:
         super().__init__(capacity_bytes, expert_sizes_bytes)
-        self.entries: dict[ExpertKey, int] = {}
+        self.entries: dict[VersionedExpertKey, int] = {}
 
     @property
-    def resident_keys(self) -> frozenset[ExpertKey]:
+    def resident_keys(self) -> frozenset[VersionedExpertKey]:
         return frozenset(self.entries)
 
-    def _evict_one(self, candidates: frozenset[ExpertKey]) -> ExpertKey:
+    def _evict_one(
+        self, candidates: frozenset[VersionedExpertKey]
+    ) -> VersionedExpertKey:
         victim = min(candidates, key=lambda key: (self.entries[key], key))
         del self.entries[victim]
         return victim
 
-    def _touch_required(self, required: frozenset[ExpertKey]) -> None:
+    def _touch_required(self, required: frozenset[VersionedExpertKey]) -> None:
         # One routing event is atomic: every required key receives the same
         # logical timestamp, so selected-expert tuple ordering cannot affect LRU.
         for key in required:
@@ -236,16 +242,18 @@ class _ByteLFUCache(_ByteDynamicCache):
     def __init__(
         self,
         capacity_bytes: int,
-        expert_sizes_bytes: Mapping[ExpertKey, int],
+        expert_sizes_bytes: Mapping[VersionedExpertKey, int],
     ) -> None:
         super().__init__(capacity_bytes, expert_sizes_bytes)
-        self.entries: dict[ExpertKey, tuple[int, int]] = {}
+        self.entries: dict[VersionedExpertKey, tuple[int, int]] = {}
 
     @property
-    def resident_keys(self) -> frozenset[ExpertKey]:
+    def resident_keys(self) -> frozenset[VersionedExpertKey]:
         return frozenset(self.entries)
 
-    def _evict_one(self, candidates: frozenset[ExpertKey]) -> ExpertKey:
+    def _evict_one(
+        self, candidates: frozenset[VersionedExpertKey]
+    ) -> VersionedExpertKey:
         victim = min(
             candidates,
             key=lambda key: (self.entries[key][0], self.entries[key][1], key),
@@ -253,7 +261,7 @@ class _ByteLFUCache(_ByteDynamicCache):
         del self.entries[victim]
         return victim
 
-    def _touch_required(self, required: frozenset[ExpertKey]) -> None:
+    def _touch_required(self, required: frozenset[VersionedExpertKey]) -> None:
         for key in required:
             if key in self.entries:
                 frequency, _ = self.entries[key]
@@ -291,6 +299,48 @@ def simulate_byte_cache(
     )
     policy = _new_policy(policy_name, capacity_bytes, validated_sizes)
     return _replay_byte_cache(sequence, required_by_event, policy)
+
+
+def simulate_versioned_byte_cache(
+    trace: VersionedRoutingTrace,
+    capacity_bytes: int,
+    expert_sizes_bytes: Mapping[VersionedExpertKey, int],
+    policy_name: str,
+) -> ByteCacheSimulation:
+    """Simulate one validated canonical v1 or v2 trace by byte capacity.
+
+    Version 1 delegates to the established :func:`simulate_byte_cache` path.
+    Version 2 preserves stage-qualified ``(routing_stage, layer, expert_id)``
+    identity and keeps capacity-unassigned events in ``event_count`` while
+    projecting them to an empty required set. Returned byte and cache counters
+    remain **SIMULATED** cache-model accounting.
+    """
+
+    if isinstance(trace, RoutingTraceV2):
+        capacity_bytes = _validate_capacity_bytes(capacity_bytes)
+        _validate_policy_name(policy_name)
+        validated_sizes = _validate_v2_expert_sizes_bytes(expert_sizes_bytes)
+        required_by_event = tuple(
+            frozenset(event.expert_requests) for event in trace.events
+        )
+        _validate_required_by_event(
+            required_by_event,
+            capacity_bytes,
+            validated_sizes,
+            "stage-qualified experts",
+        )
+        policy = _new_policy(policy_name, capacity_bytes, validated_sizes)
+        return _replay_byte_cache(trace.events, required_by_event, policy)
+    if isinstance(trace, RoutingTrace):
+        return simulate_byte_cache(
+            trace.events,
+            capacity_bytes,
+            expert_sizes_bytes,
+            policy_name,
+        )
+    raise TypeError(
+        "version-aware byte-cache simulation requires RoutingTrace or RoutingTraceV2"
+    )
 
 
 def simulate_byte_cache_workloads(
@@ -400,8 +450,8 @@ def simulate_byte_cache_workloads(
 
 
 def _replay_byte_cache(
-    sequence: tuple[RoutingEvent, ...],
-    required_by_event: tuple[frozenset[ExpertKey], ...],
+    sequence: tuple[object, ...],
+    required_by_event: tuple[frozenset[VersionedExpertKey], ...],
     policy: _ByteDynamicCache,
 ) -> ByteCacheSimulation:
     """Replay one prepared event sequence through an existing policy state."""
@@ -414,6 +464,8 @@ def _replay_byte_cache(
     peak_resident_bytes = policy.resident_bytes
 
     for required in required_by_event:
+        if not required:
+            continue
         (
             event_hits,
             event_misses,
@@ -456,13 +508,28 @@ def _validate_event_sequence(
         frozenset((event.layer, expert_id) for expert_id in event.selected_experts)
         for event in sequence
     )
+    _validate_required_by_event(
+        required_by_event,
+        capacity_bytes,
+        validated_sizes,
+        "layer-qualified experts",
+    )
+    return required_by_event
+
+
+def _validate_required_by_event(
+    required_by_event: tuple[frozenset[VersionedExpertKey], ...],
+    capacity_bytes: int,
+    validated_sizes: Mapping[VersionedExpertKey, int],
+    identity_description: str,
+) -> None:
     referenced_keys = frozenset(
         key for required in required_by_event for key in required
     )
     missing_sizes = sorted(referenced_keys.difference(validated_sizes))
     if missing_sizes:
         raise ValueError(
-            "expert size map is missing referenced layer-qualified experts: "
+            f"expert size map is missing referenced {identity_description}: "
             + ", ".join(str(key) for key in missing_sizes)
         )
     for required in required_by_event:
@@ -472,7 +539,6 @@ def _validate_event_sequence(
                 f"routing-event required working set {required_bytes} bytes "
                 f"exceeds byte-cache capacity {capacity_bytes} bytes"
             )
-    return required_by_event
 
 
 def _validate_workloads(
@@ -504,7 +570,7 @@ def _validate_policy_name(policy_name: str) -> None:
 def _new_policy(
     policy_name: str,
     capacity_bytes: int,
-    validated_sizes: Mapping[ExpertKey, int],
+    validated_sizes: Mapping[VersionedExpertKey, int],
 ) -> _ByteDynamicCache:
     if policy_name == "lru":
         return _ByteLRUCache(capacity_bytes, validated_sizes)
@@ -540,6 +606,39 @@ def _validate_expert_sizes_bytes(
             raise ValueError(
                 "expert size map keys must be non-negative integer "
                 "(layer_id, expert_id) pairs"
+            )
+        if (
+            isinstance(size_bytes, bool)
+            or not isinstance(size_bytes, int)
+            or size_bytes <= 0
+        ):
+            raise ValueError("expert sizes must be positive integer byte counts")
+
+    return {key: size_bytes for key, size_bytes in sorted(items)}
+
+
+def _validate_v2_expert_sizes_bytes(
+    expert_sizes_bytes: Mapping[VersionedExpertKey, int],
+) -> dict[RoutingExpertKeyV2, int]:
+    if not isinstance(expert_sizes_bytes, Mapping):
+        raise TypeError("expert_sizes_bytes must be a mapping")
+
+    items = tuple(expert_sizes_bytes.items())
+    for key, size_bytes in items:
+        if (
+            not isinstance(key, tuple)
+            or len(key) != 3
+            or not isinstance(key[0], str)
+            or key[0] not in {"encoder", "decoder"}
+            or any(
+                isinstance(part, bool) or not isinstance(part, int) or part < 0
+                for part in key[1:]
+            )
+        ):
+            raise ValueError(
+                "v2 expert size map keys must be "
+                "(routing_stage, layer_id, expert_id) triples with an encoder "
+                "or decoder stage and non-negative integer IDs"
             )
         if (
             isinstance(size_bytes, bool)

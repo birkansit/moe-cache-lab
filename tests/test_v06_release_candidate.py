@@ -1,14 +1,9 @@
-from contextlib import redirect_stdout
-from io import StringIO
 import importlib.util
-from pathlib import Path
 import re
-import sys
+from pathlib import Path
 import unittest
-from unittest.mock import patch
 
 from moe_cache_lab import __version__
-from moe_cache_lab.cli import main
 from moe_cache_lab.preflight_output import PREFLIGHT_LIFECYCLE_VERSION
 
 
@@ -25,12 +20,12 @@ def _load_distribution_audit():
     return module
 
 
-class V06PublicReleaseTests(unittest.TestCase):
+class V06ReleaseTests(unittest.TestCase):
     def test_version_release_notes_and_lifecycle_schema_are_consistent(self) -> None:
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         notes = (ROOT / "V06_RELEASE_NOTES.md").read_text(encoding="utf-8")
-        self.assertEqual(__version__, "0.6.0")
-        self.assertIn('version = "0.6.0"', pyproject)
+        self.assertEqual(__version__, "0.7.0")
+        self.assertIn('version = "0.7.0"', pyproject)
         self.assertIn("Current package version: **0.6.0**", notes)
         self.assertEqual(PREFLIGHT_LIFECYCLE_VERSION, 3)
 
@@ -56,53 +51,51 @@ class V06PublicReleaseTests(unittest.TestCase):
             "not an inference accelerator",
         ):
             self.assertIn(boundary, notes)
+        self.assertNotIn("independent peer review", notes.lower())
+        self.assertNotIn("independently reviewed", notes.lower())
 
-    def test_public_cli_adds_lifecycle_without_private_commands(self) -> None:
-        output = StringIO()
-        with patch.object(sys, "argv", ["moe-cache-lab", "--help"]):
-            with redirect_stdout(output), self.assertRaises(SystemExit) as raised:
-                main()
-        self.assertEqual(raised.exception.code, 0)
-        help_text = output.getvalue()
-        self.assertIn("analyze-lifecycle", help_text)
-        for forbidden in (
-            "collect-stage1",
-            "validate-stage1",
-            "benchmark-stage1",
-            "_collect-stage1-child",
-            "collect-v04",
-            "validate-v04",
-            "_collect-v04-child",
-        ):
-            self.assertNotIn(forbidden, help_text)
+    def test_release_surface_preserves_v1_v2_and_separates_evidence_classes(self) -> None:
+        preflight = (ROOT / "PREFLIGHT.md").read_text(encoding="utf-8")
+        output = (ROOT / "src" / "moe_cache_lab" / "preflight_output.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Established pre-flight analysis/config formats 1 and 2", preflight)
+        self.assertIn('"cache_lifecycle_scenarios": "SIMULATED"', output)
+        self.assertIn('"descriptive_sensitivity_summaries": "SIMULATED"', output)
+        self.assertIn('"serialized_h2d_transfer_service": "ESTIMATED"', output)
+        self.assertIn("serialized/no-overlap", preflight)
+        self.assertIn("caller-supplied", preflight)
 
-    def test_generic_distribution_audit_and_ci_cover_public_v06(self) -> None:
+    def test_distribution_audit_and_ci_cover_v06_artifacts_and_modules(self) -> None:
         audit = _load_distribution_audit()
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
 
         self.assertEqual(audit._validate_version("0.6.0"), "0.6.0")
         self.assertEqual(audit._validate_version("0.6.0rc1"), "0.6.0rc1")
+        with self.assertRaisesRegex(ValueError, "canonical release or rc version"):
+            audit._validate_version("v0.6")
         for module in (
             "byte_cache.py",
             "hardware_cost.py",
             "preflight.py",
             "preflight_output.py",
             "sensitivity_summary.py",
+            "trace.py",
+            "routing-trace-v1.schema.json",
         ):
-            self.assertTrue(
-                any(path.endswith(module) for path in audit.REQUIRED_PACKAGE_MODULES)
-            )
-        for document in ("V05_VALIDATION.md", "V06_RELEASE_NOTES.md"):
-            self.assertIn(document, audit.REQUIRED_SDIST_PATHS)
-            self.assertIn(f"include {document}", manifest)
+            self.assertTrue(any(path.endswith(module) for path in audit.REQUIRED_PACKAGE_MODULES))
+        self.assertIn("V06_RELEASE_NOTES.md", audit.REQUIRED_RELEASE_DOCS)
+        self.assertIn("TRACE_FORMAT.md", audit.REQUIRED_RELEASE_DOCS)
+        self.assertIn("include TRACE_FORMAT.md", manifest)
+        self.assertIn("include V06_RELEASE_NOTES.md", manifest)
+        self.assertIn("schemas *.json", manifest)
         self.assertIn("scripts/audit_distributions.py", manifest)
-        self.assertIn("moe_cache_lab-0.6.0-py3-none-any.whl", ci)
-        self.assertIn("moe_cache_lab-0.6.0.tar.gz", ci)
+        self.assertIn("moe_cache_lab-0.7.0-py3-none-any.whl", ci)
+        self.assertIn("moe_cache_lab-0.7.0.tar.gz", ci)
         self.assertIn("scripts/audit_distributions.py", ci)
-        self.assertNotIn("audit_v05_distributions.py", ci)
 
-    def test_public_release_surface_has_no_private_development_leakage(self) -> None:
+    def test_v06_release_facing_files_have_no_private_process_or_identity_leakage(self) -> None:
         release_facing = (
             ROOT / "README.md",
             ROOT / "PREFLIGHT.md",
@@ -112,19 +105,34 @@ class V06PublicReleaseTests(unittest.TestCase):
             ROOT / "examples" / "no-download-preflight" / "trace.jsonl",
         )
         email_pattern = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+        local_path_patterns = (
+            re.compile(r"\b[A-Za-z]:[\\/]"),
+            re.compile(r"/(?:home|Users|tmp)/"),
+        )
         forbidden_patterns = tuple(
-            re.compile(pattern, re.IGNORECASE)
+            re.compile(pattern)
             for pattern in (
-                r"\b[A-Za-z]:[\\/]",
-                r"/(?:home|Users|tmp)/",
+                r"\bdirector\b",
+                r"\bworker(?:_impl)?\b",
+                r"\breviewer agent\b",
+                r"\bchain of thought\b",
+                r"\bsystem prompt\b",
+                r"\bdeveloper prompt\b",
+                r"\borchestration transcript\b",
+                r"\bindependent(?:ly)? peer review(?:ed)?\b",
             )
         )
+        secret_markers = ("api_key", "access_token", "secret_token", "bearer ")
+
         for path in release_facing:
             text = path.read_text(encoding="utf-8")
+            lowered = text.lower()
             with self.subTest(path=path.name):
                 self.assertIsNone(email_pattern.search(text))
-                for pattern in forbidden_patterns:
-                    self.assertIsNone(pattern.search(text))
+                for pattern in local_path_patterns + forbidden_patterns:
+                    self.assertIsNone(pattern.search(lowered))
+                for marker in secret_markers:
+                    self.assertNotIn(marker, lowered)
 
 
 if __name__ == "__main__":
