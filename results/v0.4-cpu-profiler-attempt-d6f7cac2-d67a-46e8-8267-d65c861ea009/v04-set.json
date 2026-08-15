@@ -1,0 +1,43 @@
+{
+  "admissions": [
+    {
+      "child_number": 1,
+      "path": "admission-1.json",
+      "sha256": "6dba0bea30bc7fd8ae65b699b23a305d6211ffcda87cbc40788d2a11941105cc",
+      "size": 20568
+    }
+  ],
+  "attempt_directory": "v0.4-cpu-profiler-attempt-d6f7cac2-d67a-46e8-8267-d65c861ea009",
+  "attempt_uuid": "d6f7cac2-d67a-46e8-8267-d65c861ea009",
+  "children": [],
+  "corpus_sha256": "67144988f37ae14134aa83ca4b447f5119e96597dec4ab7158fc1f2592e6be2c",
+  "elapsed_seconds": 0.0,
+  "experiment_started_at": null,
+  "failures": [],
+  "finished_at": "2026-08-08T23:37:01.602637+00:00",
+  "format": "moe-cache-lab.v04-set",
+  "format_version": 1,
+  "reason": "host busy or memory gate failed",
+  "rerun_index": 0,
+  "rerun_of": null,
+  "rerun_source_path": null,
+  "rerun_source_sha256": null,
+  "retry_of": null,
+  "retry_source_path": null,
+  "retry_source_reason": null,
+  "retry_source_root_digest": null,
+  "retry_source_sha256": null,
+  "retry_source_state": null,
+  "root_cause": {
+    "category": "busy_threshold",
+    "component": "resource_admission",
+    "digest": "73b8be063b4f459233e162d6c557d5b72f7f4ae9d5129c010bf753f2ebb38980",
+    "message": "{\"audit\":{\"add_cpu_status\":0,\"add_disk_status\":0,\"close_query_status\":0,\"constructor_error\":null,\"open_query_status\":0},\"errors\":[],\"reason\":\"host busy or memory gate failed\"}",
+    "status": null
+  },
+  "spec_sha256": "0540f58fb6267a041e3ef235e14798dc6c7896d58011aa0564ae1550d485ed2f",
+  "started_at": "2026-08-08T23:36:46.140304+00:00",
+  "state": "deferred",
+  "trusted_stage1_repetition_sha256": "c752c0e3128786bb6ae40c3cdf2d67b6510b4fb369053be550b4cafdca85b94c",
+  "trusted_stage1_set_sha256": "f7e624d95368b1aa976f3e31412fc44e86dbf46439e5c15534032c14446e34d1"
+}

@@ -1,0 +1,117 @@
+{
+  "admissions": [
+    {
+      "child_number": 1,
+      "path": "admission-1.json",
+      "sha256": "e7b10ae3b54ab54c7f9e303243ca5424769629809d9bbec9c44d565461a06fc2",
+      "size": 20515
+    },
+    {
+      "child_number": 2,
+      "path": "admission-2.json",
+      "sha256": "9141fdd218e99f59270478dbbd709aad7971a4448f0f7fc06f95c8516307cbac",
+      "size": 20465
+    },
+    {
+      "child_number": 3,
+      "path": "admission-3.json",
+      "sha256": "2a601e9b72cfb3ccddce13f359bc362a957552ce971a685ded351479a99e5815",
+      "size": 20548
+    },
+    {
+      "child_number": 4,
+      "path": "admission-4.json",
+      "sha256": "6072af8271fa7348a880fa47f50c4aab87a840ded4e66dba724bd7b119d839e8",
+      "size": 20493
+    }
+  ],
+  "attempt_directory": "v0.4-cpu-profiler-attempt-b247eb85-eb21-4e3a-886e-6ba250cbb980",
+  "attempt_uuid": "b247eb85-eb21-4e3a-886e-6ba250cbb980",
+  "children": [
+    {
+      "child_number": 1,
+      "finished_at": "2026-08-09T06:07:56.783557+00:00",
+      "launch_pid": 22488,
+      "path": "child-1/v04-child.json",
+      "process_uuid": "a7b9a1ed-5cca-4605-86f8-9a70099e10b8",
+      "sha256": "34e78cffa893db40f6e6e777c10d919d4bd910d501e0ae94c17151b24eb29a10",
+      "size": 5931676,
+      "started_at": "2026-08-09T06:07:12.489757+00:00",
+      "state": "valid",
+      "stderr": "\nLoading weights:   0%|          | 0/218 [00:00<?, ?it/s]\nLoading weights:   0%|          | 1/218 [00:00<00:44,  4.88it/s]\nLoading weights:  34%|###3      | 74/218 [00:00<00:00, 301.54it/s]\nLoading weights:  54%|#####3    | 117/218 [00:00<00:00, 206.73it/s]\nLoading weights:  68%|######7   | 148/218 [00:00<00:00, 160.65it/s]\nLoading weights:  78%|#######8  | 171/218 [00:00<00:00, 170.63it/s]\nLoading weights:  89%|########8 | 193/218 [00:01<00:00, 136.39it/s]\nLoading weights: 100%|##########| 218/218 [00:01<00:00, 164.49it/s]\n[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.\n",
+      "stdout": "C:\\Projects\\moe-cache-lab\\results\\.v0.4-cpu-profiler-attempt-b247eb85-eb21-4e3a-886e-6ba250cbb980.staging\\child-1\\v04-child.json\n"
+    },
+    {
+      "child_number": 2,
+      "finished_at": "2026-08-09T06:09:02.678513+00:00",
+      "launch_pid": 9548,
+      "path": "child-2/v04-child.json",
+      "process_uuid": "e2103e3a-a93d-48d2-bbd5-6f26e9570d4d",
+      "sha256": "140bfc12a8d57b93c16d3fd9d1170e36e65a5f9ce3b1ac92434024492d6c533f",
+      "size": 5931673,
+      "started_at": "2026-08-09T06:08:18.973692+00:00",
+      "state": "valid",
+      "stderr": "\nLoading weights:   0%|          | 0/218 [00:00<?, ?it/s]\nLoading weights:  22%|##1       | 47/218 [00:00<00:00, 423.33it/s]\nLoading weights:  46%|####6     | 101/218 [00:00<00:00, 450.86it/s]\nLoading weights:  67%|######7   | 147/218 [00:00<00:00, 443.38it/s]\nLoading weights:  88%|########8 | 192/218 [00:00<00:00, 445.81it/s]\nLoading weights: 100%|##########| 218/218 [00:00<00:00, 476.92it/s]\n[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.\n",
+      "stdout": "C:\\Projects\\moe-cache-lab\\results\\.v0.4-cpu-profiler-attempt-b247eb85-eb21-4e3a-886e-6ba250cbb980.staging\\child-2\\v04-child.json\n"
+    },
+    {
+      "child_number": 3,
+      "finished_at": "2026-08-09T06:10:11.536710+00:00",
+      "launch_pid": 3912,
+      "path": "child-3/v04-child.json",
+      "process_uuid": "1f38c66e-ce87-431d-a100-929b7d54f71b",
+      "sha256": "e24f9f0046057f1a9a6dc0568f122a103eadfd64df03d61815241458549f08dd",
+      "size": 5931726,
+      "started_at": "2026-08-09T06:09:24.834775+00:00",
+      "state": "valid",
+      "stderr": "\nLoading weights:   0%|          | 0/218 [00:00<?, ?it/s]\nLoading weights:  22%|##1       | 47/218 [00:00<00:00, 469.08it/s]\nLoading weights:  43%|####3     | 94/218 [00:00<00:00, 461.42it/s]\nLoading weights:  67%|######6   | 146/218 [00:00<00:00, 427.88it/s]\nLoading weights:  92%|#########2| 201/218 [00:00<00:00, 472.00it/s]\nLoading weights: 100%|##########| 218/218 [00:00<00:00, 477.78it/s]\n[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.\n",
+      "stdout": "C:\\Projects\\moe-cache-lab\\results\\.v0.4-cpu-profiler-attempt-b247eb85-eb21-4e3a-886e-6ba250cbb980.staging\\child-3\\v04-child.json\n"
+    },
+    {
+      "child_number": 4,
+      "finished_at": "2026-08-09T06:11:18.510517+00:00",
+      "launch_pid": 23692,
+      "path": "child-4/v04-child.json",
+      "process_uuid": "742569b1-7ed3-457b-8a25-5209196571a9",
+      "sha256": "322645b181646cb2f566ac929fcc5fc4d318de5200e95278b1ebd6542debc3e7",
+      "size": 5931697,
+      "started_at": "2026-08-09T06:10:33.803644+00:00",
+      "state": "valid",
+      "stderr": "\nLoading weights:   0%|          | 0/218 [00:00<?, ?it/s]\nLoading weights:  22%|##1       | 47/218 [00:00<00:00, 391.58it/s]\nLoading weights:  46%|####6     | 101/218 [00:00<00:00, 409.81it/s]\nLoading weights:  67%|######6   | 146/218 [00:00<00:00, 425.95it/s]\nLoading weights:  88%|########7 | 191/218 [00:00<00:00, 431.54it/s]\nLoading weights: 100%|##########| 218/218 [00:00<00:00, 453.12it/s]\n[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.\n",
+      "stdout": "C:\\Projects\\moe-cache-lab\\results\\.v0.4-cpu-profiler-attempt-b247eb85-eb21-4e3a-886e-6ba250cbb980.staging\\child-4\\v04-child.json\n"
+    }
+  ],
+  "corpus_sha256": "67144988f37ae14134aa83ca4b447f5119e96597dec4ab7158fc1f2592e6be2c",
+  "deadline_seconds": 1200,
+  "elapsed_seconds": 253.29699999999866,
+  "experiment_started_at": "2026-08-09T06:07:08.201459+00:00",
+  "failures": [],
+  "finished_at": "2026-08-09T06:11:21.492860+00:00",
+  "format": "moe-cache-lab.v04-set",
+  "format_version": 1,
+  "markdown": {
+    "path": "v04-report.md",
+    "sha256": "d9b5399a125d162c3c7cdb3f847f30c196b56fd31ace9ee714f9dd4d5b81ceaf",
+    "size": 6334
+  },
+  "rerun_index": 0,
+  "rerun_of": null,
+  "rerun_source_path": null,
+  "rerun_source_sha256": null,
+  "result": {
+    "path": "v04-result.json",
+    "sha256": "ed857ef581f80fbbe8e694bc869e9265e785e5c48bd6e00118b20db7d85e7b72",
+    "size": 12477
+  },
+  "retry_of": "d6f7cac2-d67a-46e8-8267-d65c861ea009",
+  "retry_source_path": "v0.4-cpu-profiler-attempt-d6f7cac2-d67a-46e8-8267-d65c861ea009/v04-set.json",
+  "retry_source_reason": "host busy or memory gate failed",
+  "retry_source_root_digest": "73b8be063b4f459233e162d6c557d5b72f7f4ae9d5129c010bf753f2ebb38980",
+  "retry_source_sha256": "5bb411929ebaf0dd7b149781ac3f1a7808e3050df62b11ce9be290c8a5ec2a31",
+  "retry_source_state": "deferred",
+  "spec_sha256": "0540f58fb6267a041e3ef235e14798dc6c7896d58011aa0564ae1550d485ed2f",
+  "started_at": "2026-08-09T06:06:52.719346+00:00",
+  "state": "valid_stable",
+  "trusted_stage1_repetition_sha256": "c752c0e3128786bb6ae40c3cdf2d67b6510b4fb369053be550b4cafdca85b94c",
+  "trusted_stage1_set_sha256": "f7e624d95368b1aa976f3e31412fc44e86dbf46439e5c15534032c14446e34d1"
+}

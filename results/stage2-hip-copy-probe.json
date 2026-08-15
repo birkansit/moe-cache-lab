@@ -1,0 +1,344 @@
+{
+  "all_api_calls_returned_zero": true,
+  "api_call_count": 43552,
+  "cases": [
+    {
+      "allocation_bytes": 67108864,
+      "allocation_reused_across_warmups_and_trials": true,
+      "copies_per_trial": 32,
+      "copy_part_bytes": [
+        67108864
+      ],
+      "direction": "host_to_device",
+      "name": "bulk_h2d_64mib",
+      "round_trip_validation_sha256": "1c5386005b9cc63833a7cac9ee928040d05d4128b81715d893f2e2fb2a3391b7",
+      "summary": {
+        "decimal_gb_per_second": {
+          "max": 6.8906704520988065,
+          "median": 6.889078883842027,
+          "min": 6.8826559850878395
+        },
+        "microseconds_per_repetition": {
+          "max": 9750.43125,
+          "median": 9741.340625,
+          "min": 9739.090625
+        }
+      },
+      "timed_trials": 7,
+      "timer": "time.perf_counter_ns",
+      "timing_boundary": "start immediately before the first synchronous hipMemcpy; end after the final hipDeviceSynchronize returns",
+      "trials": [
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.8826559850878395,
+          "duration_ns": 312013800,
+          "microseconds_per_repetition": 9750.43125,
+          "trial": 1
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.888575040489732,
+          "duration_ns": 311745700,
+          "microseconds_per_repetition": 9742.053125,
+          "trial": 2
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.889627007671847,
+          "duration_ns": 311698100,
+          "microseconds_per_repetition": 9740.565625,
+          "trial": 3
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.887121379423144,
+          "duration_ns": 311811500,
+          "microseconds_per_repetition": 9744.109375,
+          "trial": 4
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.889401559085851,
+          "duration_ns": 311708300,
+          "microseconds_per_repetition": 9740.884375,
+          "trial": 5
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.8906704520988065,
+          "duration_ns": 311650900,
+          "microseconds_per_repetition": 9739.090625,
+          "trial": 6
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 6.889078883842027,
+          "duration_ns": 311722900,
+          "microseconds_per_repetition": 9741.340625,
+          "trial": 7
+        }
+      ],
+      "warmup_repetitions": 4
+    },
+    {
+      "allocation_bytes": 67108864,
+      "allocation_reused_across_warmups_and_trials": true,
+      "copies_per_trial": 32,
+      "copy_part_bytes": [
+        67108864
+      ],
+      "direction": "device_to_host",
+      "name": "bulk_d2h_64mib",
+      "round_trip_validation_sha256": "1c5386005b9cc63833a7cac9ee928040d05d4128b81715d893f2e2fb2a3391b7",
+      "summary": {
+        "decimal_gb_per_second": {
+          "max": 7.0899669946729915,
+          "median": 7.080894095396114,
+          "min": 7.067189817113886
+        },
+        "microseconds_per_repetition": {
+          "max": 9495.834375,
+          "median": 9477.45625,
+          "min": 9465.328125
+        }
+      },
+      "timed_trials": 7,
+      "timer": "time.perf_counter_ns",
+      "timing_boundary": "start immediately before the first synchronous hipMemcpy; end after the final hipDeviceSynchronize returns",
+      "trials": [
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.0899669946729915,
+          "duration_ns": 302890500,
+          "microseconds_per_repetition": 9465.328125,
+          "trial": 1
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.079887947350947,
+          "duration_ns": 303321700,
+          "microseconds_per_repetition": 9478.803125,
+          "trial": 2
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.080894095396114,
+          "duration_ns": 303278600,
+          "microseconds_per_repetition": 9477.45625,
+          "trial": 3
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.087701854170125,
+          "duration_ns": 302987300,
+          "microseconds_per_repetition": 9468.353125,
+          "trial": 4
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.067189817113886,
+          "duration_ns": 303866700,
+          "microseconds_per_repetition": 9495.834375,
+          "trial": 5
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.074619097630817,
+          "duration_ns": 303547600,
+          "microseconds_per_repetition": 9485.8625,
+          "trial": 6
+        },
+        {
+          "bytes": 2147483648,
+          "decimal_gb_per_second": 7.085866000056753,
+          "duration_ns": 303065800,
+          "microseconds_per_repetition": 9470.80625,
+          "trial": 7
+        }
+      ],
+      "warmup_repetitions": 4
+    },
+    {
+      "allocation_bytes": 3145728,
+      "allocation_reused_across_warmups_and_trials": true,
+      "copies_per_trial": 2048,
+      "copy_part_bytes": [
+        3145728
+      ],
+      "direction": "host_to_device",
+      "name": "expert_h2d_contiguous_3mib",
+      "round_trip_validation_sha256": "78fad2e56e8ea9e9ff1ead277528fad4da9c04932847e82b94feb647b0eec9b2",
+      "summary": {
+        "decimal_gb_per_second": {
+          "max": 5.9631789238502035,
+          "median": 5.940147881072954,
+          "min": 5.9255552763551025
+        },
+        "microseconds_per_repetition": {
+          "max": 530.8748046875,
+          "median": 529.570654296875,
+          "min": 527.525341796875
+        }
+      },
+      "timed_trials": 7,
+      "timer": "time.perf_counter_ns",
+      "timing_boundary": "start immediately before the first synchronous hipMemcpy; end after the final hipDeviceSynchronize returns",
+      "trials": [
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.9255552763551025,
+          "duration_ns": 1087231600,
+          "microseconds_per_repetition": 530.8748046875,
+          "trial": 1
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.9631789238502035,
+          "duration_ns": 1080371900,
+          "microseconds_per_repetition": 527.525341796875,
+          "trial": 2
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.951947388541834,
+          "duration_ns": 1082410600,
+          "microseconds_per_repetition": 528.52080078125,
+          "trial": 3
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.927354365841397,
+          "duration_ns": 1086901600,
+          "microseconds_per_repetition": 530.713671875,
+          "trial": 4
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.941182668158652,
+          "duration_ns": 1084371800,
+          "microseconds_per_repetition": 529.47841796875,
+          "trial": 5
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.931644419032782,
+          "duration_ns": 1086115500,
+          "microseconds_per_repetition": 530.329833984375,
+          "trial": 6
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.940147881072954,
+          "duration_ns": 1084560700,
+          "microseconds_per_repetition": 529.570654296875,
+          "trial": 7
+        }
+      ],
+      "warmup_repetitions": 8
+    },
+    {
+      "allocation_bytes": 3145728,
+      "allocation_reused_across_warmups_and_trials": true,
+      "copies_per_trial": 2048,
+      "copy_part_bytes": [
+        2097152,
+        1048576
+      ],
+      "direction": "host_to_device",
+      "name": "expert_h2d_physical_2mib_plus_1mib",
+      "round_trip_validation_sha256": "78fad2e56e8ea9e9ff1ead277528fad4da9c04932847e82b94feb647b0eec9b2",
+      "summary": {
+        "decimal_gb_per_second": {
+          "max": 5.1188548297607275,
+          "median": 4.957528027272036,
+          "min": 4.892775029972036
+        },
+        "microseconds_per_repetition": {
+          "max": 642.93330078125,
+          "median": 634.535595703125,
+          "min": 614.537451171875
+        }
+      },
+      "timed_trials": 7,
+      "timer": "time.perf_counter_ns",
+      "timing_boundary": "start immediately before the first synchronous hipMemcpy; end after the final hipDeviceSynchronize returns",
+      "trials": [
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 5.1188548297607275,
+          "duration_ns": 1258572700,
+          "microseconds_per_repetition": 614.537451171875,
+          "trial": 1
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.973405448068451,
+          "duration_ns": 1295380200,
+          "microseconds_per_repetition": 632.50986328125,
+          "trial": 2
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.920149729487076,
+          "duration_ns": 1309401400,
+          "microseconds_per_repetition": 639.35615234375,
+          "trial": 3
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.892775029972036,
+          "duration_ns": 1316727400,
+          "microseconds_per_repetition": 642.93330078125,
+          "trial": 4
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.94419858170833,
+          "duration_ns": 1303032400,
+          "microseconds_per_repetition": 636.2462890625,
+          "trial": 5
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.958377743444925,
+          "duration_ns": 1299306200,
+          "microseconds_per_repetition": 634.42685546875,
+          "trial": 6
+        },
+        {
+          "bytes": 6442450944,
+          "decimal_gb_per_second": 4.957528027272036,
+          "duration_ns": 1299528900,
+          "microseconds_per_repetition": 634.535595703125,
+          "trial": 7
+        }
+      ],
+      "warmup_repetitions": 8
+    }
+  ],
+  "claim_boundary": "raw HIP byte-copy diagnostic only; not PyTorch, model, cache, latency, or acceleration evidence",
+  "created_at": "2026-08-08T20:29:50.244324+00:00",
+  "environment": {
+    "device_index": 0,
+    "dll_path": "C:\\Program Files\\AMD\\ROCm\\6.2\\bin\\amdhip64_6.dll",
+    "dll_sha256": "76b44385f7d16514e66c88de8a6f463a39b1c3718a6771d9c16ba92262d53d05",
+    "dll_size_bytes": 23663824,
+    "hip_driver_version_integer": 60241512,
+    "hip_runtime_version_integer": 60241512,
+    "platform": "Windows-10-10.0.26200-SP0",
+    "probe_script_path": "C:\\Projects\\moe-cache-lab\\scripts\\stage2_hip_copy_probe.py",
+    "probe_script_sha256": "3c4860b59e5d51916fa800997b87e4c133d2f8b861bf6aba5ebd24196beb0e9d",
+    "process_id": 1316,
+    "python": "3.10.11"
+  },
+  "format": "moe-cache-lab.stage2-hip-copy-probe/v1",
+  "method": {
+    "all_nonzero_api_results_raise": true,
+    "allocations_freed_in_finally": true,
+    "api": "ctypes.CDLL with declared argtypes/restype",
+    "copy": "synchronous hipMemcpy plus hipDeviceSynchronize",
+    "device_allocation": "hipMalloc",
+    "host_allocation": "hipHostMalloc flags=0",
+    "validation": "0xA5 H2D/D2H round trip with full-buffer SHA-256"
+  }
+}

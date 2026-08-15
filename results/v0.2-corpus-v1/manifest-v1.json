@@ -1,0 +1,196 @@
+{
+  "corpus": {
+    "canonical_json_sha256": "67144988f37ae14134aa83ca4b447f5119e96597dec4ab7158fc1f2592e6be2c",
+    "path": "corpus.json",
+    "version": "1.0"
+  },
+  "created_at": "2026-08-08T17:02:38.930203+00:00",
+  "environment": {
+    "device": "cpu",
+    "dtype": "float32",
+    "moe_cache_lab": "0.2.0",
+    "python": "3.10.11",
+    "torch": "2.12.0+cpu",
+    "transformers": "5.12.0"
+  },
+  "format": "moe-cache-lab.collection-manifest",
+  "format_version": 1,
+  "generation": {
+    "do_sample": false,
+    "max_new_tokens": 2,
+    "strategy": "greedy",
+    "token_selection": "argmax",
+    "use_cache": true
+  },
+  "model_id": "ibm-granite/granite-3.1-1b-a400m-instruct",
+  "model_revision": {
+    "requested": "0da7a48b0276d500ce5922fd2b33944091fc6c09",
+    "resolved": "0da7a48b0276d500ce5922fd2b33944091fc6c09"
+  },
+  "prompts": [
+    {
+      "category": "factual",
+      "expert_request_count": 2496,
+      "id": "cal-factual-01",
+      "order": 0,
+      "prompt_sha256": "87867a835fb23e91329cee573f1d5aef9ce44089c622d73d7184eda979f9e353",
+      "routing_event_count": 312,
+      "split": "calibration",
+      "trace_path": "traces/00-cal-factual-01.jsonl",
+      "trace_sha256": "688fd5999632666e4b244cf3ce4f7b226585e9b66ab0e7c588a12ae65a9e7428"
+    },
+    {
+      "category": "simple-coding",
+      "expert_request_count": 2304,
+      "id": "cal-coding-01",
+      "order": 1,
+      "prompt_sha256": "5ad04dfd72a3782b3a96f157aac29d64af099f94642716126b191a7b894c43a9",
+      "routing_event_count": 288,
+      "split": "calibration",
+      "trace_path": "traces/01-cal-coding-01.jsonl",
+      "trace_sha256": "04993bb1be5682ad2b821a42e3a43eea04fbdc50cc755cc72f652f173407d254"
+    },
+    {
+      "category": "basic-math",
+      "expert_request_count": 3072,
+      "id": "cal-math-01",
+      "order": 2,
+      "prompt_sha256": "67b772700b1c8ac77846e3d972e5fb9c2662aa9abc7b4f09d8530105ee6a3e72",
+      "routing_event_count": 384,
+      "split": "calibration",
+      "trace_path": "traces/02-cal-math-01.jsonl",
+      "trace_sha256": "e6764e8c44cf5651e7fa0b420fb1c88dda59cf9df683d022b6d6cd3e678b3696"
+    },
+    {
+      "category": "conversation",
+      "expert_request_count": 2688,
+      "id": "cal-conversation-01",
+      "order": 3,
+      "prompt_sha256": "336397ea52577761c755a4e5327fc5afea0cebd28855962920a7fd25beef03ed",
+      "routing_event_count": 336,
+      "split": "calibration",
+      "trace_path": "traces/03-cal-conversation-01.jsonl",
+      "trace_sha256": "9c78fa5f7dca64500019467a7320d574f98cca9868f0711ec79cbaea35e813b9"
+    },
+    {
+      "category": "factual",
+      "expert_request_count": 2496,
+      "id": "eval-factual-01",
+      "order": 4,
+      "prompt_sha256": "fd9aec15860aa2c799a4b795884623a807b165fa57e920a2f1ae564357700c4d",
+      "routing_event_count": 312,
+      "split": "evaluation",
+      "trace_path": "traces/04-eval-factual-01.jsonl",
+      "trace_sha256": "9ff9b47fe93dd9dad0a892727b4e859334ad7e4c0037cc42c81dc08b3b38ffa7"
+    },
+    {
+      "category": "factual",
+      "expert_request_count": 2112,
+      "id": "eval-factual-02",
+      "order": 5,
+      "prompt_sha256": "c0e8d0677f03f40cbfa747d0a6909f76455edbc9df490a6735c667d6a7b7afdd",
+      "routing_event_count": 264,
+      "split": "evaluation",
+      "trace_path": "traces/05-eval-factual-02.jsonl",
+      "trace_sha256": "81236c947d21614e8a7a2203ba9f0c6cfe6699557ae3d41ea14c5bc91e261335"
+    },
+    {
+      "category": "simple-coding",
+      "expert_request_count": 2880,
+      "id": "eval-coding-01",
+      "order": 6,
+      "prompt_sha256": "ffcb991c6896a8d87ed477def40d219a4aa1cafbac5705bd9b88fb2017768705",
+      "routing_event_count": 360,
+      "split": "evaluation",
+      "trace_path": "traces/06-eval-coding-01.jsonl",
+      "trace_sha256": "ba1ed2a444fb5cc9613c53abe8fff6b40fb47a0b5b62360e7b47df0db1b4d84b"
+    },
+    {
+      "category": "simple-coding",
+      "expert_request_count": 2496,
+      "id": "eval-coding-02",
+      "order": 7,
+      "prompt_sha256": "10d371465ae8683c9c19a39c5fbe386106dfda45ef89d1fd9ce02d60e05c1297",
+      "routing_event_count": 312,
+      "split": "evaluation",
+      "trace_path": "traces/07-eval-coding-02.jsonl",
+      "trace_sha256": "81197786f446362b5ca7c03c612c3b7ad44a1ad08aeaad23e2960b472cbf7e63"
+    },
+    {
+      "category": "basic-math",
+      "expert_request_count": 4032,
+      "id": "eval-math-01",
+      "order": 8,
+      "prompt_sha256": "77794723d184eb6d608c9d97314490fd2ab002681368d72acfc3f7d1ee6684aa",
+      "routing_event_count": 504,
+      "split": "evaluation",
+      "trace_path": "traces/08-eval-math-01.jsonl",
+      "trace_sha256": "824ba82578207f8bfc864cee9c8ce84dc1dc31a81d9a95c4f535f7b9fe11f478"
+    },
+    {
+      "category": "summarization",
+      "expert_request_count": 4224,
+      "id": "eval-summary-01",
+      "order": 9,
+      "prompt_sha256": "15e466f6980b97825a0d5319462bc2287ad61b3db6c578b439528ad2efd5d4f1",
+      "routing_event_count": 528,
+      "split": "evaluation",
+      "trace_path": "traces/09-eval-summary-01.jsonl",
+      "trace_sha256": "e59744bb570f49a5ae8e63fa2005ebff0a7d3bbb83c9706bc61e1d5aca4ad206"
+    },
+    {
+      "category": "basic-reasoning",
+      "expert_request_count": 3456,
+      "id": "eval-reasoning-01",
+      "order": 10,
+      "prompt_sha256": "bd7848c62fd6ecdd2d15049a99d55d7e3b4ad3c68c561a7c6e1d978da47b00aa",
+      "routing_event_count": 432,
+      "split": "evaluation",
+      "trace_path": "traces/10-eval-reasoning-01.jsonl",
+      "trace_sha256": "1cad02007e450779131ccbfd8c02b2488b201a0922bd5b25c1266c705d11f809"
+    },
+    {
+      "category": "conversation",
+      "expert_request_count": 3456,
+      "id": "eval-conversation-01",
+      "order": 11,
+      "prompt_sha256": "e1cd3b50ad66266fd088a1b2cc383c0e34e77c895befbd10c01a739b913c1e28",
+      "routing_event_count": 432,
+      "split": "evaluation",
+      "trace_path": "traces/11-eval-conversation-01.jsonl",
+      "trace_sha256": "8b78cf714ef4787645045cd2a330ded0fd21c5ec1907c9a0c9961d414419e99a"
+    }
+  ],
+  "routing": {
+    "capture_method": "PyTorch forward hooks on Granite MoE router modules; greedy autoregressive forward calls for generated tokens",
+    "experts_per_layer": 32,
+    "routed_layer_count": 24,
+    "routed_layer_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "selected_experts_per_token": 8
+  }
+}

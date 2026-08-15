@@ -1,0 +1,463 @@
+{
+  "child_count": 4,
+  "child_delta_stats": {
+    "max": 383215500.0,
+    "mean": 285726600.0,
+    "min": 157816700.0,
+    "n": 4,
+    "sample_sd": 94762385.0678457
+  },
+  "child_ratio_stats": {
+    "max": 1.028220842549842,
+    "mean": 1.0208846178255349,
+    "min": 1.011750743135379,
+    "n": 4,
+    "sample_sd": 0.006958304661225125
+  },
+  "children": [
+    {
+      "child_number": 1,
+      "delta_ns": 157816700,
+      "descriptive_memory_delta_sums": {
+        "profiled_private_delta": 15716352,
+        "profiled_working_set_delta": 18788352,
+        "reference_private_delta": 15720448,
+        "reference_working_set_delta": 14348288
+      },
+      "prompt_ratio_stats": {
+        "max": 1.0270805770133584,
+        "mean": 1.0118634691439874,
+        "min": 0.9886353785465141,
+        "n": 8,
+        "sample_sd": 0.012926843018100147
+      },
+      "ratio": 1.011750743135379,
+      "sum_profiled_ns": 13588175800,
+      "sum_reference_ns": 13430359100
+    },
+    {
+      "child_number": 2,
+      "delta_ns": 318429700,
+      "descriptive_memory_delta_sums": {
+        "profiled_private_delta": 18477056,
+        "profiled_working_set_delta": 19869696,
+        "reference_private_delta": 16138240,
+        "reference_working_set_delta": 15450112
+      },
+      "prompt_ratio_stats": {
+        "max": 1.0565498480292208,
+        "mean": 1.0235161579589895,
+        "min": 1.0104942500692464,
+        "n": 8,
+        "sample_sd": 0.014661045867464233
+      },
+      "ratio": 1.023570952041221,
+      "sum_profiled_ns": 13827841600,
+      "sum_reference_ns": 13509411900
+    },
+    {
+      "child_number": 3,
+      "delta_ns": 283444500,
+      "descriptive_memory_delta_sums": {
+        "profiled_private_delta": 14757888,
+        "profiled_working_set_delta": 16777216,
+        "reference_private_delta": 17731584,
+        "reference_working_set_delta": 17084416
+      },
+      "prompt_ratio_stats": {
+        "max": 1.0423875673069103,
+        "mean": 1.0205684558985717,
+        "min": 0.9849484097463713,
+        "n": 8,
+        "sample_sd": 0.017087826841495162
+      },
+      "ratio": 1.0199959335756976,
+      "sum_profiled_ns": 14458551600,
+      "sum_reference_ns": 14175107100
+    },
+    {
+      "child_number": 4,
+      "delta_ns": 383215500,
+      "descriptive_memory_delta_sums": {
+        "profiled_private_delta": 18878464,
+        "profiled_working_set_delta": 20123648,
+        "reference_private_delta": 13004800,
+        "reference_working_set_delta": 12726272
+      },
+      "prompt_ratio_stats": {
+        "max": 1.067382779322618,
+        "mean": 1.0283098707004692,
+        "min": 1.0098152987450222,
+        "n": 8,
+        "sample_sd": 0.01682159901443694
+      },
+      "ratio": 1.028220842549842,
+      "sum_profiled_ns": 13962381300,
+      "sum_reference_ns": 13579165800
+    }
+  ],
+  "cv_paired_ratio": 0.006815956024537018,
+  "cv_sum_profiled": 0.02629763658060313,
+  "cv_sum_reference": 0.024856668659024556,
+  "decision": "valid_stable",
+  "descriptive_memory": {
+    "claim": "before/after signed deltas only; order-conditioned; no per-mode peak overhead",
+    "prompt_macro": {
+      "profiled_private_delta": {
+        "max": 10392576.0,
+        "mean": 2119680.0,
+        "min": -2000896.0,
+        "n": 8,
+        "sample_sd": 4467693.810643697
+      },
+      "profiled_working_set_delta": {
+        "max": 10615808.0,
+        "mean": 2361216.0,
+        "min": -2064384.0,
+        "n": 8,
+        "sample_sd": 4532398.522751754
+      },
+      "reference_private_delta": {
+        "max": 10042368.0,
+        "mean": 1956096.0,
+        "min": -2049024.0,
+        "n": 8,
+        "sample_sd": 4408062.3953935
+      },
+      "reference_working_set_delta": {
+        "max": 10183680.0,
+        "mean": 1862784.0,
+        "min": -2044928.0,
+        "n": 8,
+        "sample_sd": 4520382.836609433
+      }
+    },
+    "prompt_rows": [
+      {
+        "profiled_private_delta": {
+          "max": 454656.0,
+          "mean": 48128.0,
+          "min": -524288.0,
+          "n": 4,
+          "sample_sd": 424674.08855890104
+        },
+        "profiled_working_set_delta": {
+          "max": 1155072.0,
+          "mean": 587776.0,
+          "min": -278528.0,
+          "n": 4,
+          "sample_sd": 626911.0539866614
+        },
+        "prompt_id": "eval-factual-01",
+        "reference_private_delta": {
+          "max": 397312.0,
+          "mean": -13312.0,
+          "min": -716800.0,
+          "n": 4,
+          "sample_sd": 496550.2599334734
+        },
+        "reference_working_set_delta": {
+          "max": 770048.0,
+          "mean": -173056.0,
+          "min": -811008.0,
+          "n": 4,
+          "sample_sd": 687675.7879194721
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 262144.0,
+          "mean": -458752.0,
+          "min": -1048576.0,
+          "n": 4,
+          "sample_sd": 582506.3100041635
+        },
+        "profiled_working_set_delta": {
+          "max": 520192.0,
+          "mean": 103424.0,
+          "min": -450560.0,
+          "n": 4,
+          "sample_sd": 454236.05831329594
+        },
+        "prompt_id": "eval-factual-02",
+        "reference_private_delta": {
+          "max": 0.0,
+          "mean": -312320.0,
+          "min": -786432.0,
+          "n": 4,
+          "sample_sd": 384069.62568784325
+        },
+        "reference_working_set_delta": {
+          "max": 122880.0,
+          "mean": -336896.0,
+          "min": -1400832.0,
+          "n": 4,
+          "sample_sd": 716791.2228034046
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 1048576.0,
+          "mean": 393216.0,
+          "min": -262144.0,
+          "n": 4,
+          "sample_sd": 537768.0397693167
+        },
+        "profiled_working_set_delta": {
+          "max": 1929216.0,
+          "mean": 971776.0,
+          "min": -131072.0,
+          "n": 4,
+          "sample_sd": 989833.9452062991
+        },
+        "prompt_id": "eval-coding-01",
+        "reference_private_delta": {
+          "max": 1376256.0,
+          "mean": 418816.0,
+          "min": -749568.0,
+          "n": 4,
+          "sample_sd": 902127.146267088
+        },
+        "reference_working_set_delta": {
+          "max": 1544192.0,
+          "mean": 593920.0,
+          "min": -524288.0,
+          "n": 4,
+          "sample_sd": 875324.5598626069
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 1351680.0,
+          "mean": 708608.0,
+          "min": 32768.0,
+          "n": 4,
+          "sample_sd": 601549.8146443623
+        },
+        "profiled_working_set_delta": {
+          "max": 1236992.0,
+          "mean": 109568.0,
+          "min": -1069056.0,
+          "n": 4,
+          "sample_sd": 1153305.2777104017
+        },
+        "prompt_id": "eval-coding-02",
+        "reference_private_delta": {
+          "max": 327680.0,
+          "mean": 1024.0,
+          "min": -491520.0,
+          "n": 4,
+          "sample_sd": 353940.7772080898
+        },
+        "reference_working_set_delta": {
+          "max": 53248.0,
+          "mean": -605184.0,
+          "min": -1097728.0,
+          "n": 4,
+          "sample_sd": 505701.2016860022
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 21352448.0,
+          "mean": 10392576.0,
+          "min": -196608.0,
+          "n": 4,
+          "sample_sd": 12156998.555051325
+        },
+        "profiled_working_set_delta": {
+          "max": 20795392.0,
+          "mean": 10615808.0,
+          "min": 315392.0,
+          "n": 4,
+          "sample_sd": 11743037.639596097
+        },
+        "prompt_id": "eval-math-01",
+        "reference_private_delta": {
+          "max": 20709376.0,
+          "mean": 10042368.0,
+          "min": -593920.0,
+          "n": 4,
+          "sample_sd": 11960344.957051588
+        },
+        "reference_working_set_delta": {
+          "max": 20639744.0,
+          "mean": 10183680.0,
+          "min": -90112.0,
+          "n": 4,
+          "sample_sd": 11777701.854068475
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 15126528.0,
+          "mean": 7923712.0,
+          "min": 720896.0,
+          "n": 4,
+          "sample_sd": 8279344.745741497
+        },
+        "profiled_working_set_delta": {
+          "max": 16027648.0,
+          "mean": 8372224.0,
+          "min": 827392.0,
+          "n": 4,
+          "sample_sd": 8647020.44771184
+        },
+        "prompt_id": "eval-summary-01",
+        "reference_private_delta": {
+          "max": 15060992.0,
+          "mean": 7825408.0,
+          "min": 589824.0,
+          "n": 4,
+          "sample_sd": 8354932.740288299
+        },
+        "reference_working_set_delta": {
+          "max": 15568896.0,
+          "mean": 7856128.0,
+          "min": 737280.0,
+          "n": 4,
+          "sample_sd": 8193828.659898619
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 524288.0,
+          "mean": -2000896.0,
+          "min": -4722688.0,
+          "n": 4,
+          "sample_sd": 2712662.3950001593
+        },
+        "profiled_working_set_delta": {
+          "max": 503808.0,
+          "mean": -2064384.0,
+          "min": -4403200.0,
+          "n": 4,
+          "sample_sd": 2564279.201122998
+        },
+        "prompt_id": "eval-reasoning-01",
+        "reference_private_delta": {
+          "max": 786432.0,
+          "mean": -2049024.0,
+          "min": -4591616.0,
+          "n": 4,
+          "sample_sd": 2678596.8864314016
+        },
+        "reference_working_set_delta": {
+          "max": 360448.0,
+          "mean": -2044928.0,
+          "min": -4587520.0,
+          "n": 4,
+          "sample_sd": 2669928.8829080574
+        }
+      },
+      {
+        "profiled_private_delta": {
+          "max": 528384.0,
+          "mean": -49152.0,
+          "min": -589824.0,
+          "n": 4,
+          "sample_sd": 460321.88529332384
+        },
+        "profiled_working_set_delta": {
+          "max": 1077248.0,
+          "mean": 193536.0,
+          "min": -888832.0,
+          "n": 4,
+          "sample_sd": 826867.1602718299
+        },
+        "prompt_id": "eval-conversation-01",
+        "reference_private_delta": {
+          "max": 0.0,
+          "mean": -264192.0,
+          "min": -593920.0,
+          "n": 4,
+          "sample_sd": 278698.6144110994
+        },
+        "reference_working_set_delta": {
+          "max": 225280.0,
+          "mean": -571392.0,
+          "min": -1683456.0,
+          "n": 4,
+          "sample_sd": 800573.3028440722
+        }
+      }
+    ]
+  },
+  "format": "moe-cache-lab.v04-result",
+  "format_version": 1,
+  "paired_ratio_span": 0.01627881128450951,
+  "prompt_macro": {
+    "max": 1.0314053722655394,
+    "mean": 1.0210644884255045,
+    "min": 1.0136170523493717,
+    "n": 8,
+    "sample_sd": 0.006049666403458691
+  },
+  "prompt_rows": [
+    {
+      "max": 1.0301647097360875,
+      "mean": 1.0229813728448436,
+      "min": 1.0104942500692464,
+      "n": 4,
+      "prompt_id": "eval-factual-01",
+      "sample_sd": 0.008650178919404512
+    },
+    {
+      "max": 1.028385967834017,
+      "mean": 1.0182566589069155,
+      "min": 1.0137916287988082,
+      "n": 4,
+      "prompt_id": "eval-factual-02",
+      "sample_sd": 0.00689239944197533
+    },
+    {
+      "max": 1.067382779322618,
+      "mean": 1.0136170523493717,
+      "min": 0.9849484097463713,
+      "n": 4,
+      "prompt_id": "eval-coding-01",
+      "sample_sd": 0.03802079172966499
+    },
+    {
+      "max": 1.0565498480292208,
+      "mean": 1.0268531115397834,
+      "min": 1.0114862663719464,
+      "n": 4,
+      "prompt_id": "eval-coding-02",
+      "sample_sd": 0.020499837455555187
+    },
+    {
+      "max": 1.0423875673069103,
+      "mean": 1.0314053722655394,
+      "min": 1.025082915342649,
+      "n": 4,
+      "prompt_id": "eval-math-01",
+      "sample_sd": 0.007733005240859625
+    },
+    {
+      "max": 1.0249141298678237,
+      "mean": 1.0214429835676961,
+      "min": 1.0195215677972025,
+      "n": 4,
+      "prompt_id": "eval-summary-01",
+      "sample_sd": 0.002391649808095951
+    },
+    {
+      "max": 1.0297392024145962,
+      "mean": 1.0142219668815478,
+      "min": 0.9985238423040734,
+      "n": 4,
+      "prompt_id": "eval-reasoning-01",
+      "sample_sd": 0.013262479893694702
+    },
+    {
+      "max": 1.0277332628848808,
+      "mean": 1.0197373890483383,
+      "min": 1.0114358825106926,
+      "n": 4,
+      "prompt_id": "eval-conversation-01",
+      "sample_sd": 0.006655724753853665
+    }
+  ],
+  "workload_prompt_count": 8
+}

@@ -11,12 +11,9 @@ import platform
 import re
 from typing import Any, Iterable
 
-import torch
-import transformers
-
 from . import __version__
 from .cache import CacheSimulation, simulate
-from .collector import DEFAULT_MODEL, GraniteTraceCollector
+from .granite_dependencies import DEFAULT_MODEL, load_granite_modules
 from .trace import RoutingEvent, RoutingTrace, read_trace, write_trace
 
 CORPUS_FORMAT = "moe-cache-lab.prompt-corpus"
@@ -73,6 +70,11 @@ class SuiteBenchmark:
     inputs: SuiteInputs
     capacities: tuple[int, ...]
     simulations: tuple[CacheSimulation, ...]
+
+
+def GraniteTraceCollector(*args: Any, **kwargs: Any):
+    """Lazy compatibility factory for the optional Granite collector."""
+    return load_granite_modules()[2].GraniteTraceCollector(*args, **kwargs)
 
 
 def canonical_json_bytes(value: Any) -> bytes:
@@ -136,6 +138,7 @@ def collect_corpus(
     """Load Granite once and collect one independent trace per prompt."""
     if isinstance(max_new_tokens, bool) or not isinstance(max_new_tokens, int) or max_new_tokens < 0:
         raise ValueError("max_new_tokens must be a non-negative integer")
+    torch, transformers, _ = load_granite_modules()
     corpus = load_corpus(corpus_path)
     output = Path(output_directory).resolve()
     traces_directory = output / "traces"

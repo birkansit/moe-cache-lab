@@ -12,27 +12,50 @@ import zipfile
 
 EXPECTED_NAME = "moe-cache-lab"
 EXPECTED_LICENSE_EXPRESSION = "Apache-2.0"
+EXPECTED_OPTIONAL_REQUIREMENTS = {
+    'torch==2.12.0; extra == "granite"',
+    'transformers==5.12.0; extra == "granite"',
+    'torch==2.12.0; extra == "switch"',
+    'transformers==5.12.0; extra == "switch"',
+}
 REQUIRED_PACKAGE_MODULES = (
     "moe_cache_lab/__init__.py",
     "moe_cache_lab/byte_cache.py",
+    "moe_cache_lab/cross_model_locality.py",
+    "moe_cache_lab/evidence.py",
+    "moe_cache_lab/experiment_bundle.py",
+    "moe_cache_lab/granite_dependencies.py",
     "moe_cache_lab/hardware_cost.py",
     "moe_cache_lab/preflight.py",
     "moe_cache_lab/preflight_output.py",
+    "moe_cache_lab/runtime_copy_executor.py",
+    "moe_cache_lab/runtime_copy_validation.py",
     "moe_cache_lab/sensitivity_summary.py",
+    "moe_cache_lab/trace.py",
+    "moe_cache_lab/switch_collector.py",
+    "moe_cache_lab/switch_dependencies.py",
+    "moe_cache_lab/v2_analysis_output.py",
+    "moe_cache_lab/schemas/routing-trace-v1.schema.json",
+    "moe_cache_lab/schemas/routing-trace-v2.schema.json",
 )
 REQUIRED_RELEASE_DOCS = (
     "README.md",
+    "WALKTHROUGH.md",
     "PREFLIGHT.md",
+    "TRACE_FORMAT.md",
     "V06_RELEASE_NOTES.md",
+    "V07_RELEASE_NOTES.md",
 )
 REQUIRED_SDIST_PATHS = (
     "LICENSE",
     "MANIFEST.in",
     "PREFLIGHT.md",
     "README.md",
+    "WALKTHROUGH.md",
+    "TRACE_FORMAT.md",
     "V05_RELEASE_NOTES.md",
-    "V05_VALIDATION.md",
     "V06_RELEASE_NOTES.md",
+    "V07_RELEASE_NOTES.md",
     "examples/no-download-preflight/README.md",
     "examples/no-download-preflight/expected.sha256",
     "examples/no-download-preflight/preflight-config.json",
@@ -42,10 +65,21 @@ REQUIRED_SDIST_PATHS = (
     "setup.py",
     "src/moe_cache_lab/__init__.py",
     "src/moe_cache_lab/byte_cache.py",
+    "src/moe_cache_lab/cross_model_locality.py",
+    "src/moe_cache_lab/evidence.py",
+    "src/moe_cache_lab/experiment_bundle.py",
     "src/moe_cache_lab/hardware_cost.py",
     "src/moe_cache_lab/preflight.py",
     "src/moe_cache_lab/preflight_output.py",
+    "src/moe_cache_lab/runtime_copy_executor.py",
+    "src/moe_cache_lab/runtime_copy_validation.py",
     "src/moe_cache_lab/sensitivity_summary.py",
+    "src/moe_cache_lab/trace.py",
+    "src/moe_cache_lab/switch_collector.py",
+    "src/moe_cache_lab/switch_dependencies.py",
+    "src/moe_cache_lab/v2_analysis_output.py",
+    "src/moe_cache_lab/schemas/routing-trace-v1.schema.json",
+    "src/moe_cache_lab/schemas/routing-trace-v2.schema.json",
 )
 
 
@@ -90,6 +124,15 @@ def audit_wheel(path: Path, version: str) -> None:
             not any(value.startswith("License ::") for value in metadata.get_all("Classifier", [])),
             "legacy license classifier must be absent from wheel metadata",
         )
+        requirements = set(metadata.get_all("Requires-Dist", []))
+        _require(
+            requirements == EXPECTED_OPTIONAL_REQUIREMENTS,
+            f"wheel dependency metadata mismatch: {sorted(requirements)}",
+        )
+        _require(
+            metadata.get_all("Provides-Extra", []) == ["granite", "switch"],
+            "wheel must provide exactly the granite and switch optional extras",
+        )
         _require(
             any(name.endswith(".dist-info/licenses/LICENSE") for name in names),
             "wheel must contain .dist-info/licenses/LICENSE",
@@ -97,7 +140,7 @@ def audit_wheel(path: Path, version: str) -> None:
         missing_modules = [name for name in REQUIRED_PACKAGE_MODULES if name not in names]
         _require(
             not missing_modules,
-            "wheel is missing required v0.6 modules: " + ", ".join(missing_modules),
+            "wheel is missing required package modules: " + ", ".join(missing_modules),
         )
         docs_root = (
             f"moe_cache_lab-{version}.data/data/share/doc/moe-cache-lab"

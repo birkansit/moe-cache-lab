@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:moe-cache-lab:schema:routing-trace:2",
+  "title": "moe-cache-lab routing JSONL record, version 2",
+  "description": "Schema for one record in a moe-cache-lab.routing-jsonl v2 file. Cross-record stage, chronology, profile, range, and assignment-width constraints are enforced by the package validator.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/metadata_record"
+    },
+    {
+      "$ref": "#/$defs/routing_selection_record"
+    }
+  ],
+  "$defs": {
+    "nullable_string": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "routing_stage_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "routing_stage",
+        "num_experts",
+        "assigned_experts_per_token",
+        "allows_unassigned"
+      ],
+      "properties": {
+        "routing_stage": {
+          "enum": [
+            "encoder",
+            "decoder"
+          ]
+        },
+        "num_experts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "assigned_experts_per_token": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allows_unassigned": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "format",
+        "format_version",
+        "model_id",
+        "routing_stages"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "metadata"
+        },
+        "format": {
+          "const": "moe-cache-lab.routing-jsonl"
+        },
+        "format_version": {
+          "const": 2
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "routing_stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/routing_stage_profile"
+          }
+        },
+        "source_text": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "generated_text": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "capture_method": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "transformers_version": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "model_revision": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      }
+    },
+    "routing_selection_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "routing_stage",
+        "phase",
+        "token_position",
+        "layer",
+        "assignment_state",
+        "selected_experts",
+        "selected_probabilities"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "routing_selection"
+        },
+        "routing_stage": {
+          "enum": [
+            "encoder",
+            "decoder"
+          ]
+        },
+        "phase": {
+          "enum": [
+            "source",
+            "decoder_prompt",
+            "decoder_generated"
+          ]
+        },
+        "token_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "assignment_state": {
+          "enum": [
+            "assigned",
+            "unassigned"
+          ]
+        },
+        "selected_experts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "selected_probabilities": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          }
+        },
+        "unassigned_reason": {
+          "const": "capacity"
+        },
+        "token_id": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "routing_stage": {
+                "const": "encoder"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "phase": {
+                "const": "source"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "phase": {
+                "enum": [
+                  "decoder_prompt",
+                  "decoder_generated"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "assignment_state": {
+                "const": "assigned"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "selected_experts": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "unassigned_reason"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "unassigned_reason"
+            ],
+            "properties": {
+              "selected_experts": {
+                "maxItems": 0
+              },
+              "selected_probabilities": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

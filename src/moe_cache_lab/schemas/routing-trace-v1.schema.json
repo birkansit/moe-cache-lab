@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:moe-cache-lab:schema:routing-trace:1",
+  "title": "moe-cache-lab routing JSONL record, version 1",
+  "description": "Schema for one record in a moe-cache-lab.routing-jsonl v1 file. The first non-blank line must be one metadata record and every later non-blank line must be a routing_selection record. Cross-record ordering and chronology constraints are defined in TRACE_FORMAT.md and enforced by the package validator.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/metadata_record"
+    },
+    {
+      "$ref": "#/$defs/routing_selection_record"
+    }
+  ],
+  "$defs": {
+    "nullable_string": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nullable_positive_integer": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metadata_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "format",
+        "format_version",
+        "model_id"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "metadata"
+        },
+        "format": {
+          "const": "moe-cache-lab.routing-jsonl"
+        },
+        "format_version": {
+          "const": 1
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "num_experts": {
+          "$ref": "#/$defs/nullable_positive_integer"
+        },
+        "experts_per_token": {
+          "$ref": "#/$defs/nullable_positive_integer"
+        },
+        "source_text": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "generated_text": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "capture_method": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "transformers_version": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "model_revision": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      }
+    },
+    "routing_selection_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_type",
+        "phase",
+        "token_position",
+        "layer",
+        "selected_experts"
+      ],
+      "properties": {
+        "record_type": {
+          "const": "routing_selection"
+        },
+        "phase": {
+          "enum": [
+            "prompt",
+            "generated"
+          ]
+        },
+        "token_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_experts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "token_id": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selected_probabilities": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "$comment": "When non-empty, the package validator requires exactly one probability per selected expert. An empty array means probabilities were not recorded."
+        }
+      }
+    }
+  }
+}

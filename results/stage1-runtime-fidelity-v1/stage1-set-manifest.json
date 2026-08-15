@@ -1,0 +1,44 @@
+{
+  "corpus": {
+    "canonical_json_sha256": "67144988f37ae14134aa83ca4b447f5119e96597dec4ab7158fc1f2592e6be2c",
+    "path": "corpus.json",
+    "version": "1.0"
+  },
+  "created_at": "2026-08-08T19:36:09.089690+00:00",
+  "deadline_seconds": 900,
+  "elapsed_seconds": 135.875,
+  "finished_at": "2026-08-08T19:36:09.089690+00:00",
+  "format": "moe-cache-lab.stage1-set-manifest",
+  "format_version": 1,
+  "max_decode_input_steps": 16,
+  "model_id": "ibm-granite/granite-3.1-1b-a400m-instruct",
+  "model_revision": "0da7a48b0276d500ce5922fd2b33944091fc6c09",
+  "parent_pid": 22428,
+  "repetition_count": 3,
+  "repetitions": [
+    {
+      "manifest_path": "repetition-1/stage1-repetition-manifest.json",
+      "manifest_sha256": "c752c0e3128786bb6ae40c3cdf2d67b6510b4fb369053be550b4cafdca85b94c",
+      "process_pid": 11332,
+      "process_uuid": "05ab3604-b0ca-4cf9-a93d-e3af41b37f1e",
+      "repetition_number": 1
+    },
+    {
+      "manifest_path": "repetition-2/stage1-repetition-manifest.json",
+      "manifest_sha256": "48c8be256c596647885bb479b121dc29a73665059df3a9d7e7f698e8bc50bb92",
+      "process_pid": 11520,
+      "process_uuid": "f05c4b28-f646-46cb-b7f9-24998e68f303",
+      "repetition_number": 2
+    },
+    {
+      "manifest_path": "repetition-3/stage1-repetition-manifest.json",
+      "manifest_sha256": "edfd384a13b73368f8fc73d1960b5b1b4b3995c9f93f09a48520d10a521d26b6",
+      "process_pid": 20628,
+      "process_uuid": "5f6e09b9-01c2-48ce-b41e-cbf6425e4e82",
+      "repetition_number": 3
+    }
+  ],
+  "run_uuid": "087dec1b-bff9-448e-b5b1-3d090ca31abc",
+  "started_at": "2026-08-08T19:33:53.213750+00:00",
+  "torch_num_threads": 4
+}

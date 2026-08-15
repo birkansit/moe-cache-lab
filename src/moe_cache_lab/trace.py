@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+from importlib.resources import files
 import json
 import math
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 TRACE_FORMAT = "moe-cache-lab.routing-jsonl"
 TRACE_VERSION = 1
+TRACE_SCHEMA_RESOURCE = "schemas/routing-trace-v1.schema.json"
 ExpertKey = tuple[int, int]
 
 
@@ -153,34 +155,147 @@ def write_trace(path: str | Path, trace: RoutingTrace) -> Path:
     return destination
 
 
-def read_trace(path: str | Path) -> RoutingTrace:
-    """Read and validate the routing JSONL format."""
-    with Path(path).open(encoding="utf-8") as stream:
-        records = [json.loads(line) for line in stream if line.strip()]
-    if not records or records[0].get("record_type") != "metadata":
+def load_trace_schema() -> dict[str, Any]:
+    """Load the packaged machine-readable schema for canonical v1 records."""
+    resource = files("moe_cache_lab").joinpath(TRACE_SCHEMA_RESOURCE)
+    return json.loads(resource.read_text(encoding="utf-8"))
+
+
+def validate_trace_records(records: Iterable[Mapping[str, Any]]) -> RoutingTrace:
+    """Validate canonical v1 JSONL records and return an immutable trace.
+
+    Record shape is closed by the packaged JSON Schema. Cross-record chronology
+    and routing invariants are enforced by :class:`RoutingTrace`; input order is
+    authoritative and is never sorted or repaired.
+    """
+    materialized = tuple(records)
+    if not materialized:
+        raise ValueError("trace must contain at least one record")
+    if not isinstance(materialized[0], Mapping):
+        raise ValueError("trace line 1 must be a JSON object")
+    if materialized[0].get("record_type") != "metadata":
         raise ValueError("trace must start with a metadata record")
-    metadata = records[0]
-    if metadata.get("format") != TRACE_FORMAT or metadata.get("format_version") != TRACE_VERSION:
-        raise ValueError("unsupported routing trace format")
-    for line_number, record in enumerate(records[1:], start=2):
+
+    schema = load_trace_schema()
+    metadata_contract = schema["$defs"]["metadata_record"]
+    event_contract = schema["$defs"]["routing_selection_record"]
+    metadata = materialized[0]
+    _validate_record_shape(metadata, metadata_contract, 1)
+    _validate_metadata_values(metadata)
+
+    events: list[RoutingEvent] = []
+    for line_number, record in enumerate(materialized[1:], start=2):
+        if not isinstance(record, Mapping):
+            raise ValueError(f"trace line {line_number} must be a JSON object")
         if record.get("record_type") != "routing_selection":
             raise ValueError(f"unexpected record type at trace line {line_number}")
-    events = tuple(
-        RoutingEvent(
-            phase=record["phase"], token_position=record["token_position"], layer=record["layer"],
-            selected_experts=tuple(record["selected_experts"]), token_id=record.get("token_id"),
-            selected_probabilities=tuple(record.get("selected_probabilities", ())),
+        _validate_record_shape(record, event_contract, line_number)
+        if not isinstance(record["selected_experts"], list):
+            raise ValueError(
+                f"selected_experts at trace line {line_number} must be a JSON array"
+            )
+        if "selected_probabilities" in record and not isinstance(
+            record["selected_probabilities"], list
+        ):
+            raise ValueError(
+                f"selected_probabilities at trace line {line_number} must be a JSON array"
+            )
+        events.append(
+            RoutingEvent(
+                phase=record["phase"],
+                token_position=record["token_position"],
+                layer=record["layer"],
+                selected_experts=tuple(record["selected_experts"]),
+                token_id=record.get("token_id"),
+                selected_probabilities=tuple(record.get("selected_probabilities", ())),
+            )
         )
-        for record in records[1:]
-    )
+
     return RoutingTrace(
-        model_id=metadata["model_id"], num_experts=metadata.get("num_experts"),
-        experts_per_token=metadata.get("experts_per_token"), events=events,
-        source_text=metadata.get("source_text"), generated_text=metadata.get("generated_text"),
-        capture_method=metadata.get("capture_method", "unknown"), created_at=metadata.get("created_at"),
+        model_id=metadata["model_id"],
+        num_experts=metadata.get("num_experts"),
+        experts_per_token=metadata.get("experts_per_token"),
+        events=tuple(events),
+        source_text=metadata.get("source_text"),
+        generated_text=metadata.get("generated_text"),
+        capture_method=metadata.get("capture_method", "unknown"),
+        created_at=metadata.get("created_at"),
         transformers_version=metadata.get("transformers_version"),
         model_revision=metadata.get("model_revision"),
     )
+
+
+def read_trace(path: str | Path) -> RoutingTrace:
+    """Read and validate the routing JSONL format."""
+    with Path(path).open(encoding="utf-8") as stream:
+        records = []
+        for line_number, line in enumerate(stream, start=1):
+            if not line.strip():
+                continue
+            try:
+                records.append(json.loads(line, object_pairs_hook=_unique_json_object))
+            except (json.JSONDecodeError, ValueError) as error:
+                raise ValueError(f"invalid JSON at trace line {line_number}: {error}") from error
+    return validate_trace_records(records)
+
+
+def _validate_record_shape(
+    record: Mapping[str, Any], contract: Mapping[str, Any], line_number: int
+) -> None:
+    if any(not isinstance(key, str) for key in record):
+        raise ValueError(f"trace line {line_number} contains a non-string object key")
+    required = frozenset(contract["required"])
+    allowed = frozenset(contract["properties"])
+    missing = sorted(required.difference(record))
+    if missing:
+        raise ValueError(
+            f"trace line {line_number} is missing required field(s): {', '.join(missing)}"
+        )
+    unknown = sorted(set(record).difference(allowed))
+    if unknown:
+        raise ValueError(
+            f"trace line {line_number} contains unknown field(s): {', '.join(unknown)}"
+        )
+
+
+def _validate_metadata_values(metadata: Mapping[str, Any]) -> None:
+    if metadata["format"] != TRACE_FORMAT:
+        raise ValueError("unsupported routing trace format")
+    version = metadata["format_version"]
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise ValueError("format_version must be an integer")
+    if version != TRACE_VERSION:
+        raise ValueError("unsupported routing trace format version")
+    model_id = metadata["model_id"]
+    if not isinstance(model_id, str) or not model_id:
+        raise ValueError("model_id must be a non-empty string")
+    for name in ("num_experts", "experts_per_token"):
+        value = metadata.get(name)
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0
+        ):
+            raise ValueError(f"{name} must be null or a positive integer")
+    for name in (
+        "source_text",
+        "generated_text",
+        "transformers_version",
+        "model_revision",
+    ):
+        value = metadata.get(name)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"{name} must be null or a string")
+    for name in ("capture_method", "created_at"):
+        if name in metadata and not isinstance(metadata[name], str):
+            raise ValueError(f"{name} must be a string when provided")
+
+
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
 
 
 def requests_from_events(events: Iterable[RoutingEvent]) -> tuple[ExpertKey, ...]:
