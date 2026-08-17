@@ -2,16 +2,19 @@
 
 **Trace-driven pre-flight analysis for MoE routing, expert caching, and offloading research.**
 
-`moe-cache-lab` is an offline research toolkit that sits between **routing
-observation** and **runtime offloading engineering**. Give it a canonical MoE
-routing trace and it can describe routing evidence, replay compatible traces
-through explicit byte-cache simulations, estimate serialized transfer service
-under caller-supplied assumptions, and package artifacts for reproducibility.
+`moe-cache-lab` is a correctness-first, **trace-driven MoE pre-flight analysis toolkit**
+and offline research tool that sits between **routing observation** and **runtime
+offloading engineering**. Give it a canonical MoE routing trace and it can
+describe routing evidence, replay compatible traces through explicit byte-cache
+simulations, estimate serialized transfer service under caller-supplied
+assumptions, and package artifacts for reproducibility.
 
 It is designed to answer a bounded question before deeper runtime work:
 
 > **What does the observed routing trace establish about locality and simulated
 > cache behavior, and what does it still leave unmeasured?**
+
+Current package version: **0.7.0**.
 
 | | |
 | --- | --- |
@@ -86,8 +89,9 @@ moe-cache-lab analyze examples\no-download-preflight\trace.jsonl `
 ```
 
 The resulting cache rows are **SIMULATED** and transfer-service rows are
-**ESTIMATED** from explicit assumptions. Follow
-[`WALKTHROUGH.md`](WALKTHROUGH.md) for the executable evidence walkthrough.
+**ESTIMATED** from explicit assumptions. Follow the
+[canonical no-model evidence walkthrough](WALKTHROUGH.md) for the executable
+evidence walkthrough.
 
 ## Evidence boundaries
 
@@ -110,6 +114,8 @@ speedup, latency, throughput, or an optimal policy/capacity.
 > expert swapping/offloading or physical GPU residency management.
 
 ## What the current release supports
+
+The repository and package include:
 
 - strict canonical routing trace v1/v2 readers and schemas;
 - v1 layer-qualified and v2 encoder/decoder stage-qualified expert identity;
@@ -146,7 +152,9 @@ External producers can target the strict versioned JSONL contract in
 - native routing/dispatch observation remains authoritative.
 
 The base installation imports and analyzes canonical v1/v2 traces without
-PyTorch or Transformers. Model collection is optional and model-specific.
+PyTorch or Transformers. Model collection is optional and model-specific. The
+built-in public collector remains **Granite/Transformers-specific**; other
+producers must satisfy the canonical trace contract independently.
 
 ## Typical workflow
 
@@ -289,11 +297,10 @@ $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
 ```
 
-GitHub CI does not download Hugging Face models. Release validation includes
-source compilation, dependency checks, the full unit/evidence suite,
-wheel/sdist build, isolated package installation, and tracked no-download
-snapshot checks. Hardware-specific probing and performance benchmarks remain
-separate workflows.
+GitHub CI does not download Hugging Face models. Release validation runs source
+compilation, dependency checks, the full unit/evidence suite, wheel/sdist build,
+isolated package installation, and tracked no-download snapshot checks.
+Hardware-specific probing and performance benchmarks remain separate workflows.
 
 ## Documentation map
 
