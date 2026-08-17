@@ -297,10 +297,10 @@ $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
 ```
 
-GitHub CI does not download Hugging Face models. Release validation runs source
-compilation, dependency checks, the full unit/evidence suite, wheel/sdist build,
-isolated package installation, and tracked no-download snapshot checks.
-Hardware-specific probing and performance benchmarks remain separate workflows.
+GitHub CI does not download Hugging Face models. Release validation runs source compilation,
+dependency checks, the full unit/evidence suite, wheel/sdist build, isolated
+package installation, and tracked no-download snapshot checks. Hardware-specific
+probing and performance benchmarks remain separate workflows.
 
 ## Documentation map
 
