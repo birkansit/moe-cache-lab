@@ -33,8 +33,8 @@ jobs:
 
       - name: Download and verify exact private export artifacts
         env:
-          PATCH_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-53b4-81f4-92d4-b591e44adb4a/raw?se=2026-08-24T10%3A08%3A35Z&sp=r&sv=2026-02-06&sr=b&scid=76e41673-7bbb-5701-8fc6-6f24555ad868&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T07%3A48%3A34Z&ske=2026-08-25T07%3A48%3A34Z&sks=b&skv=2026-02-06&sig=mgunJcvSYmHc2Puxl0RexMcM2Q9vTHNTPNxjlVpiHCE%3D"
-          SNAPSHOT_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-83bc-81f4-8cc4-42880749bcf0/raw?se=2026-08-24T10%3A08%3A42Z&sp=r&sv=2026-02-06&sr=b&scid=0969dd74-e96d-5c94-859e-8e8d469c93e6&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T08%3A18%3A56Z&ske=2026-08-25T08%3A18%3A56Z&sks=b&skv=2026-02-06&sig=AWBHoC6duTYKptadXyxjGT%2BnL%2BhpWKryZZB%2BxzMfx00%3D"
+          PATCH_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-d5a8-81f4-8270-a774a2988c22/raw?se=2026-08-24T10%3A10%3A03Z&sp=r&sv=2026-02-06&sr=b&scid=f7be0928-425c-5a98-81bd-0c3eb3860911&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T06%3A13%3A07Z&ske=2026-08-25T06%3A13%3A07Z&sks=b&skv=2026-02-06&sig=YKX5d5jDcSE3udL/h42sfEpo4Gs0UOL0L0/ipN1mZUg%3D"
+          SNAPSHOT_URL: "https://sdmntprukwest.oaiusercontent.com/files/00000000-0164-8243-8508-9efae459b934/raw?se=2026-08-24T10%3A10%3A09Z&sp=r&sv=2026-02-06&sr=b&scid=c8939aa3-0ec8-50b4-85bb-0c975125e348&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T08%3A18%3A53Z&ske=2026-08-25T08%3A18%3A53Z&sks=b&skv=2026-02-06&sig=VXlpXQghVbqDCjNrwaxyaLodcjehHigYpumXBlqhuig%3D"
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/e6/patch" "$RUNNER_TEMP/e6/snapshot"
@@ -161,12 +161,13 @@ jobs:
         run: |
           set -euo pipefail
           test "$(python -c 'import moe_cache_lab; print(moe_cache_lab.__version__)')" = "0.8.0"
+          git add -A
           { cat "$RUNNER_TEMP/e6/patch/v08-public-export.paths"; echo README.md; } | sort > "$RUNNER_TEMP/e6/expected-paths"
-          git diff --name-only HEAD | sort > "$RUNNER_TEMP/e6/actual-paths"
+          git diff --cached --name-only HEAD | sort > "$RUNNER_TEMP/e6/actual-paths"
           diff -u "$RUNNER_TEMP/e6/expected-paths" "$RUNNER_TEMP/e6/actual-paths"
           test "$(wc -l < "$RUNNER_TEMP/e6/actual-paths")" -eq 84
-          test -z "$(git diff --name-only HEAD -- results)"
-          git diff --check
+          test -z "$(git diff --cached --name-only HEAD -- results)"
+          git diff --cached --check
           python -m unittest tests.test_release_surface_hygiene tests.test_v08_release_hardening tests.test_external_runtime_interop_policy -v
           python scripts/audit_publication_hygiene.py
           python -m compileall -q src tests scripts examples
@@ -177,7 +178,6 @@ jobs:
           set -euo pipefail
           git config user.name "DutchVanDerLinde1710"
           git config user.email "85397651+birkansit@users.noreply.github.com"
-          git add -A
           git commit -m "Release v0.8.0"
           test "$(git rev-list --count eb7dbc2be235763b7466a5b797c08ca92243bfd9..HEAD)" -eq 1
           git push origin HEAD:release/v0.8.0-public
