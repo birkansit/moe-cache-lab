@@ -270,6 +270,70 @@ The packaged
 workflow shows a standard-library-only script writing this external JSONL
 boundary directly before invoking validation and the supported offline tools.
 
+## Canonical validity and byte reproducibility
+
+Canonical validity is **semantic**. As stated above, JSON object key order has
+no meaning, and a file is valid when its records satisfy the closed v1 or v2
+contract. `validate-trace` and the strict readers establish that semantic
+validity; they do not define a unique byte encoding for a set of records, and
+they never sort keys, rewrite whitespace, change line endings, migrate versions,
+or repair records in order to reach one.
+
+**Byte reproducibility is a separate, stronger claim.** Two files whose records
+parse equal are semantically equivalent and equally valid, yet may differ in
+bytes and therefore in SHA-256. That difference is not a schema defect, but it
+does defeat any workflow of the shape
+
+```text
+frozen raw bytes + frozen converter -> published canonical bytes/hash
+```
+
+because the published hash cannot be regenerated from the frozen inputs.
+
+### When a canonical hash is published as a reproduction target
+
+Publishing a canonical-file SHA-256 as something another party is expected to
+reproduce is a byte-level claim. It requires freezing, together:
+
+- the raw input bytes and their hash;
+- the converter, by immutable reference (repository, commit, path) and hash;
+- the exact converter invocation, including any parameter that changes emitted
+  content such as a declared `model_id`;
+- the resulting canonical bytes and their hash.
+
+Reproduction then means regenerating those bytes. Parsed-record equality alone
+does not satisfy it, and a mismatched hash is not upgraded to agreement by
+demonstrating that the records are semantically identical.
+
+### Recommended deterministic serialization profile
+
+This profile is a recommendation for **new** artifacts intended as byte
+reproduction targets. It changes no schema, no validator behavior, and no
+existing accepted record.
+
+- UTF-8 without BOM;
+- LF line endings;
+- exactly one JSON object per line, with a final LF;
+- deterministic object-key ordering;
+- compact separators;
+- no implicit sorting, deduplication, or repair of records or events.
+
+```python
+json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+```
+
+Deterministic key ordering is chosen here only because it is easy to reproduce
+across independent implementations. It remains **semantically irrelevant**: a
+producer that emits another stable order is equally valid, and readers must
+continue to treat key order as meaningless.
+
+### Non-retroactivity
+
+Existing frozen artifacts and their published hashes remain valid evidence for
+the converter that produced them. This profile applies only to artifacts newly
+declared as byte reproduction targets, and it does not alter the v1 or v2
+schemas, the evidence classes, or validator behavior.
+
 ## External producer conformance
 
 Passing `validate-trace` or the strict reader establishes canonical-file
