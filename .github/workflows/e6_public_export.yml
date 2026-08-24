@@ -33,15 +33,14 @@ jobs:
 
       - name: Download and verify exact private export artifacts
         env:
-          PATCH_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-d5a8-81f4-8270-a774a2988c22/raw?se=2026-08-24T10%3A10%3A03Z&sp=r&sv=2026-02-06&sr=b&scid=f7be0928-425c-5a98-81bd-0c3eb3860911&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T06%3A13%3A07Z&ske=2026-08-25T06%3A13%3A07Z&sks=b&skv=2026-02-06&sig=YKX5d5jDcSE3udL/h42sfEpo4Gs0UOL0L0/ipN1mZUg%3D"
-          SNAPSHOT_URL: "https://sdmntprukwest.oaiusercontent.com/files/00000000-0164-8243-8508-9efae459b934/raw?se=2026-08-24T10%3A10%3A09Z&sp=r&sv=2026-02-06&sr=b&scid=c8939aa3-0ec8-50b4-85bb-0c975125e348&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T08%3A18%3A53Z&ske=2026-08-25T08%3A18%3A53Z&sks=b&skv=2026-02-06&sig=VXlpXQghVbqDCjNrwaxyaLodcjehHigYpumXBlqhuig%3D"
+          PATCH_URL: "https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-edc4-820a-9169-2932aa43c05f/raw?se=2026-08-24T10%3A12%3A15Z&sp=r&sv=2026-02-06&sr=b&scid=bd766030-d86c-5753-ab29-eca4ba5ef2c6&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-23T22%3A36%3A17Z&ske=2026-08-24T22%3A36%3A17Z&sks=b&skv=2026-02-06&sig=wR/e/64wQNOSnWwOvHnjDnr73qqZ1oN0tb5ZTpYdkH0%3D"
+          SNAPSHOT_URL: "https://sdmntprindiasocentral.oaiusercontent.com/files/00000000-e018-8211-a960-197005137171/raw?se=2026-08-24T10%3A12%3A24Z&sp=r&sv=2026-02-06&sr=b&scid=0a8f63cf-ef44-5241-888d-a994722081f1&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-24T06%3A13%3A07Z&ske=2026-08-25T06%3A13%3A07Z&sks=b&skv=2026-02-06&sig=ESNHmCafyaYbOzgEg4CIeBtYsBOfMgdKzd1y18XZPhI%3D"
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/e6/patch" "$RUNNER_TEMP/e6/snapshot"
           curl --fail --location --silent --show-error "$PATCH_URL" -o "$RUNNER_TEMP/e6/patch.zip"
           unzip -q "$RUNNER_TEMP/e6/patch.zip" -d "$RUNNER_TEMP/e6/patch"
           echo "c7b37f4fa685672e2fe4634fe2cd67856f2b60086a90ab13d1381b2ceddb902d  $RUNNER_TEMP/e6/patch/v08-public-export.patch" | sha256sum -c -
-          test ! -z "$(cat "$RUNNER_TEMP/e6/patch/v08-public-export.paths")"
           test "$(wc -l < "$RUNNER_TEMP/e6/patch/v08-public-export.paths")" -eq 83
           ! grep -Fxq 'README.md' "$RUNNER_TEMP/e6/patch/v08-public-export.paths"
           curl --fail --location --silent --show-error "$SNAPSHOT_URL" -o "$RUNNER_TEMP/e6/snapshot.zip"
@@ -49,7 +48,6 @@ jobs:
           echo "bf4e2b8a43aa66b6b138f2b21f54bb042f567eda6742a8d116028c529e677194  $RUNNER_TEMP/e6/snapshot/moe-cache-lab-private-main.tar.gz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/e6/private"
           tar -xzf "$RUNNER_TEMP/e6/snapshot/moe-cache-lab-private-main.tar.gz" -C "$RUNNER_TEMP/e6/private"
-          test -f "$RUNNER_TEMP/e6/private/README.md"
           grep -Fq 'Current package version: **0.8.0**' "$RUNNER_TEMP/e6/private/README.md"
 
       - name: Apply exact non-README v0.8 delta
@@ -172,12 +170,14 @@ jobs:
           python scripts/audit_publication_hygiene.py
           python -m compileall -q src tests scripts examples
 
-      - name: Commit exact public release candidate
+      - name: Commit staging tree without workflow file
         working-directory: target
         run: |
           set -euo pipefail
+          git restore --source=HEAD --staged --worktree .github/workflows/ci.yml
           git config user.name "DutchVanDerLinde1710"
           git config user.email "85397651+birkansit@users.noreply.github.com"
-          git commit -m "Release v0.8.0"
+          git diff --cached --check
+          git commit -m "Stage v0.8.0 public export"
           test "$(git rev-list --count eb7dbc2be235763b7466a5b797c08ca92243bfd9..HEAD)" -eq 1
           git push origin HEAD:release/v0.8.0-public
