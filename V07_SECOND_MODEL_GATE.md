@@ -1,21 +1,16 @@
-# V0.7 second-model research gate
+# V0.7 second-model research record
 
 Status: **NO-GO for a second collector under the current trace-v1 and local
 hardware constraints.**
 
-This is a private-development selection note, not a support claim. It records
+This historical selection record is not a support claim. It records
 configuration and source inspection only. No candidate model was instantiated,
 no model weights or tokenizer files were downloaded, and no routing was
 measured.
 
 ## Scope and evidence
 
-The gate was performed on 2026-08-13 from private-dev base
-`4b1eaa92e7f1d50996b643ce748697aac775764a`. The installed implementation was
-official Transformers `5.12.0` at:
-
-`%LOCALAPPDATA%\Programs\Python\Python310\Lib\site-packages\transformers`
-
+The gate was performed on 2026-08-13 against official Transformers `5.12.0`.
 The corresponding upstream sources are pinned by the official `v5.12.0` tag:
 
 - [SwitchTransformers implementation](https://github.com/huggingface/transformers/blob/v5.12.0/src/transformers/models/switch_transformers/modeling_switch_transformers.py)
@@ -102,9 +97,10 @@ No candidate satisfies both requirements at once:
 2. a credible full-checkpoint CPU-FP32 collection on the known 16 GiB Windows
    machine.
 
-Therefore Issue #40 authorizes **no second collector implementation**.
+Therefore the gate selected **no second collector implementation** under the
+trace-v1 and local-resource constraints.
 
-Two future paths are defensible, but each requires a new explicit issue:
+The gate identified two defensible future paths:
 
 - If contract portability is the priority, first design and review a trace-v2
   encoder/decoder/drop contract using synthetic records, then reconsider

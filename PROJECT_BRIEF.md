@@ -3,28 +3,33 @@
 ## Purpose
 
 `moe-cache-lab` is a correctness-first, trace-driven MoE pre-flight and
-evidence-analysis toolkit. The current package version is **0.7.0**. It is
+evidence-analysis toolkit. The current package version is **0.8.0**. It is
 research and decision-support tooling, not an inference accelerator.
 
-[`README.md`](README.md) and [`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md)
-define the current public capability and claim boundary.
+[`README.md`](README.md) defines the current source capability and claim
+boundary. [`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md) preserves the v0.7
+package scope; [`V08_RELEASE_NOTES.md`](V08_RELEASE_NOTES.md) defines the v0.8
+release scope and limitations.
 
-## Current v0.7 contract
+## Current v0.8 contract
 
 - Canonical routing trace v1 and v2 coexist. V1 preserves layer-qualified
-  `(layer, expert_id)` identity, and the established cache and pre-flight
-  pipeline remains v1-only.
+  `(layer, expert_id)` identity and its established pre-flight behavior.
 - V2 preserves stage-qualified `(routing_stage, layer, expert_id)` encoder and
-  decoder identity and supports descriptive offline analysis without adding a
-  v2 cache or pre-flight pipeline.
+  decoder identity and supports descriptive offline analysis. The
+  library-level version-aware byte-cache simulator also accepts v2, preserves
+  that identity, and treats unassigned events as zero-request/cache-inert
+  events. Single-trace v2 pre-flight uses stage-qualified config v3; v2
+  lifecycle orchestration remains unavailable rather than flattening stages.
 - The lightweight base installation requires neither PyTorch nor Transformers.
   Granite remains the built-in public collection path through its optional
   dependencies.
 - One pinned SwitchTransformers family/path was narrowly validated for the
   trace-v2 abstraction and research. There is no public Switch collection CLI
   and no broad Switch, Transformers, or MoE-family compatibility claim.
-- V0.7 includes version-aware evidence diagnostics and deterministic experiment
-  bundles with explicit integrity and provenance boundaries.
+- Version 0.8 retains the version-aware evidence diagnostics introduced in
+  v0.7 and deterministic experiment bundles with explicit integrity and
+  provenance boundaries.
 - Routing-derived evidence is **MEASURED** only where provenance establishes
   measurement. Cache outcomes are **SIMULATED**, and transfer-service results
   are **ESTIMATED** under explicit caller-supplied assumptions.
@@ -33,7 +38,7 @@ define the current public capability and claim boundary.
 
 The remaining sections preserve earlier milestones, evidence, corrections, and
 negative results as historical provenance. They do not replace the current
-v0.7 contract above.
+contract above.
 
 ### V0.3 and V0.4 outcome
 
@@ -88,11 +93,12 @@ invalidated and must not be cited as V0.1 results. Corrected real-model evidence
 is tracked at `results/v0.2-corpus-v1/` and
 `results/v0.2-corpus-v1-report.md`.
 
-### Measurement discipline
+### Historical measurement discipline
 
 - Never claim runtime improvement from simulator results.
-- Label routing selections as **measured**, cache results as **simulated**, and
-  transfer counts as **estimated**.
+- Label routing selections as **measured** only when their trace provenance
+  establishes measurement; label cache results as **simulated** and transfer
+  counts as **estimated**.
 - Do not attach unverified semantic meaning to expert IDs.
 - Keep prompt and generated-token routing distinct in collection, analysis, and
   reporting.

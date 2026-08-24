@@ -15,7 +15,7 @@ class ReleaseTests(unittest.TestCase):
         match = re.search(r'^version = "([^"]+)"$', pyproject, re.MULTILINE)
         self.assertIsNotNone(match)
         self.assertEqual(match.group(1), __version__)
-        self.assertEqual(__version__, "0.7.0")
+        self.assertEqual(__version__, "0.8.0")
 
     def test_release_evidence_hashes_and_claim_boundaries(self) -> None:
         expected = {

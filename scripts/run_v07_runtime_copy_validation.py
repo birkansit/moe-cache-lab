@@ -1,4 +1,4 @@
-"""Run the private, bounded Issue #54 Switch CPU copy validation experiment."""
+"""Run the bounded Switch CPU copy validation experiment."""
 
 from __future__ import annotations
 

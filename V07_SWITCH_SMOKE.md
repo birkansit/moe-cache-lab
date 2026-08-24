@@ -1,17 +1,14 @@
-# V0.7 SwitchTransformers observational smoke
+# V0.7 SwitchTransformers observational smoke record
 
-Status: **PASS for the bounded Issue #48 routing-observation gate**.
+Status: **PASS for the bounded routing-observation smoke**.
 
-This private-development note records one CPU observational smoke. Routing is
+This historical record describes one CPU observational smoke. Routing is
 **MEASURED** from the native post-capacity assignment. The byte-cache outcome
 below is **SIMULATED**. It is not a physical-residency, transfer-volume,
 performance, model-quality, or deployment result.
 
 ## Provenance and runtime
 
-- Exact dev base: `ecc4435795664ec4f0858fa851dfcba6cab1f4be`.
-- Implementation commit: the commit containing this note; its SHA is reported
-  in the branch handoff rather than embedded self-referentially here.
 - Model: `google/switch-base-8`.
 - Immutable revision: `92fe2d22b024d9937146fe097ba3d3a7ba146e1b`.
 - Runtime: Transformers `5.12.0`, Torch `2.12.0+cpu`, CPU, float32 model,
@@ -31,7 +28,7 @@ The run routed one decoder-start token and four fed-back non-EOS decoder inputs;
 the final non-EOS horizon candidate was not fed and therefore has no routing
 event. No second prompt was needed.
 
-## Authorized assets
+## Retrieved assets
 
 Only the following seven official files at the immutable revision were
 downloaded. They total `1,242,115,371` bytes.
@@ -129,5 +126,5 @@ offline byte-cache boundary without encoder/decoder aliasing.
   external/reused encoder outputs, and other model families remain outside this
   collector gate.
 - No expert meaning is inferred from IDs or routing frequency.
-- This PASS completes only the Issue #48 observational gate. It does not start
-  v0.7-B or authorize runtime offloading, public release, tagging, or PyPI.
+- This PASS is limited to the observational smoke and does not establish
+  runtime offloading, performance, or broad model-family support.

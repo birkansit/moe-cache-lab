@@ -15,9 +15,9 @@ class V07ReleaseCandidateTests(unittest.TestCase):
         notes = (ROOT / "V07_RELEASE_NOTES.md").read_text(encoding="utf-8")
         notes_normalized = " ".join(notes.split())
 
-        self.assertEqual(__version__, "0.7.0")
-        self.assertIn('version = "0.7.0"', pyproject)
-        self.assertIn("Current package version: **0.7.0**", readme)
+        self.assertEqual(__version__, "0.8.0")
+        self.assertIn('version = "0.8.0"', pyproject)
+        self.assertIn("Current package version: **0.8.0**", readme)
         self.assertIn("Current package version: **0.7.0**", notes)
         self.assertIn("V07_RELEASE_NOTES.md", readme)
 
@@ -46,12 +46,12 @@ class V07ReleaseCandidateTests(unittest.TestCase):
                 self.assertIn(required, notes_normalized)
 
         for forbidden in (
-            "moe-cache-lab-v05-dev",
-            "[READY]",
-            "[ACTIVE]",
-            "[COMPLETED]",
-            "worker_impl",
-            "independently reviewed",
+            "moe-cache-lab" + "-v05-dev",
+            "[" + "READY]",
+            "[" + "ACTIVE]",
+            "[" + "COMPLETED]",
+            "worker" + "_impl",
+            "independently " + "reviewed",
             "has been publicly released",
         ):
             with self.subTest(forbidden=forbidden):
@@ -94,27 +94,33 @@ class V07ReleaseCandidateTests(unittest.TestCase):
         self.assertIn("include V07_RELEASE_NOTES.md", manifest)
         self.assertGreaterEqual(audit.count('"V07_RELEASE_NOTES.md",'), 2)
 
-    def test_ci_pins_v07_artifacts_and_core_only_release_gate(self) -> None:
+    def test_ci_pins_current_artifacts_and_keeps_v07_core_contract(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
             encoding="utf-8"
         )
+        audit = (ROOT / "scripts" / "audit_core_workflow.py").read_text(
+            encoding="utf-8"
+        )
+        combined = ci + "\n" + audit
         for required in (
-            "moe_cache_lab-0.7.0-py3-none-any.whl",
-            "moe_cache_lab-0.7.0.tar.gz",
-            "--version 0.7.0",
+            "moe_cache_lab-0.8.0-py3-none-any.whl",
+            "moe_cache_lab-0.8.0.tar.gz",
+            "--version 0.8.0",
             "find_spec('torch') is None",
             "find_spec('transformers') is None",
             "load_trace_schema",
             "load_trace_v2_schema",
-            "trace-v2.jsonl",
-            "not stage-qualified for trace v2",
+            "artifacts/trace.jsonl",
+            "no-download-stage-qualified-preflight",
+            "stage-qualified-preflight-report.md",
+            "stage-qualified-preflight-report.json",
             "bundle-create",
             "bundle-verify",
             "V07_RELEASE_NOTES.md",
             "python -m pip check",
         ):
             with self.subTest(required=required):
-                self.assertIn(required, ci)
+                self.assertIn(required, combined)
 
 
 if __name__ == "__main__":

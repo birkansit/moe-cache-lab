@@ -38,6 +38,7 @@ from .byte_cache import (
     simulate_byte_cache,
 )
 from .trace import ExpertKey, RoutingEvent
+from .trace_v2 import RoutingExpertKeyV2, RoutingTraceV2
 
 _POLICY_ORDER = ("lru", "lfu")
 _NS_PER_SECOND = 1_000_000_000
@@ -155,6 +156,22 @@ class WorkloadByteContext:
 
 
 @dataclass(frozen=True)
+class StageQualifiedWorkloadByteContext:
+    """Supplied-size context for assigned stage-qualified expert requests.
+
+    Unassigned trace-v2 events contribute no expert keys or bytes. Extra valid
+    caller-supplied size records are not referenced and do not inflate this
+    context. These values are descriptive caller-assumption context, not
+    measured physical residency.
+    """
+
+    unique_referenced_expert_count: int
+    unique_referenced_expert_bytes: int
+    maximum_atomic_event_working_set_bytes: int
+    referenced_expert_keys: tuple[RoutingExpertKeyV2, ...]
+
+
+@dataclass(frozen=True)
 class TransferSensitivityRow:
     """One simulated byte-cache outcome paired with one estimated transfer cost."""
 
@@ -179,6 +196,23 @@ class TransferSensitivitySweep:
     hardware_profiles: tuple[HardwareTransferProfile, ...]
     transfer_operation_plans: tuple[TransferOperationPlan, ...]
     workload_context: WorkloadByteContext
+    rows: tuple[TransferSensitivityRow, ...]
+
+
+@dataclass(frozen=True)
+class StageQualifiedTransferSensitivitySweep:
+    """ESTIMATED transfer rows derived from existing trace-v2 simulations.
+
+    This type never runs cache simulation. Rows retain the exact
+    :class:`ByteCacheSimulation` objects supplied by the B3 engine and are
+    ordered by capacity, policy, profile name, then operation-plan name.
+    """
+
+    capacities_bytes: tuple[int, ...]
+    policies: tuple[str, ...]
+    hardware_profiles: tuple[HardwareTransferProfile, ...]
+    transfer_operation_plans: tuple[TransferOperationPlan, ...]
+    workload_context: StageQualifiedWorkloadByteContext
     rows: tuple[TransferSensitivityRow, ...]
 
 
@@ -593,6 +627,91 @@ def run_transfer_sensitivity_sweep(
     )
 
 
+def derive_stage_qualified_transfer_sensitivity(
+    trace: RoutingTraceV2,
+    expert_sizes_bytes: Mapping[RoutingExpertKeyV2, int],
+    simulations: Iterable[ByteCacheSimulation],
+    capacities_bytes: Iterable[int],
+    policies: Iterable[str],
+    hardware_profiles: Iterable[HardwareTransferProfile],
+    transfer_operation_plans: Iterable[TransferOperationPlan],
+) -> StageQualifiedTransferSensitivitySweep:
+    """Apply the existing transfer estimator to exact B3 simulation cells.
+
+    The supplied simulation grid is validated and reused by identity; cache
+    state is never replayed here. All cache counters remain **SIMULATED** and
+    all returned transfer-service values remain **ESTIMATED**.
+    """
+
+    if not isinstance(trace, RoutingTraceV2):
+        raise TypeError(
+            "stage-qualified transfer sensitivity requires a RoutingTraceV2"
+        )
+    normalized_capacities = _normalize_capacities(capacities_bytes)
+    normalized_policies = _normalize_policies(policies)
+    normalized_profiles = _normalize_profiles(hardware_profiles)
+    normalized_plans = _normalize_transfer_operation_plans(
+        transfer_operation_plans
+    )
+    simulation_rows = tuple(simulations)
+    if not simulation_rows:
+        raise ValueError(
+            "stage-qualified transfer sensitivity requires B3 simulation rows"
+        )
+    if any(not isinstance(row, ByteCacheSimulation) for row in simulation_rows):
+        raise TypeError(
+            "stage-qualified transfer sensitivity requires ByteCacheSimulation rows"
+        )
+
+    expected_cells = tuple(
+        (capacity, policy)
+        for capacity in normalized_capacities
+        for policy in normalized_policies
+    )
+    actual_cells = tuple(
+        (row.capacity_bytes, row.policy) for row in simulation_rows
+    )
+    if actual_cells != expected_cells:
+        raise ValueError(
+            "B3 simulation rows must form the canonical capacity/policy grid"
+        )
+
+    event_count = len(trace.events)
+    expert_request_count = len(trace.expert_requests)
+    for row in simulation_rows:
+        if row.event_count != event_count:
+            raise ValueError("B3 simulation event count does not match trace v2")
+        if row.expert_request_count != expert_request_count:
+            raise ValueError(
+                "B3 simulation expert-request count does not match trace v2"
+            )
+        if row.expert_request_count != row.hits + row.misses:
+            raise ValueError("B3 simulation hit/miss accounting does not reconcile")
+
+    context = _stage_qualified_workload_byte_context(
+        trace, expert_sizes_bytes
+    )
+    rows = tuple(
+        TransferSensitivityRow(
+            hardware_profile=profile,
+            transfer_operation_plan=plan,
+            simulation=simulation,
+            estimate=estimate_transfer_cost(simulation, profile, plan),
+        )
+        for simulation in simulation_rows
+        for profile in normalized_profiles
+        for plan in normalized_plans
+    )
+    return StageQualifiedTransferSensitivitySweep(
+        capacities_bytes=normalized_capacities,
+        policies=normalized_policies,
+        hardware_profiles=normalized_profiles,
+        transfer_operation_plans=normalized_plans,
+        workload_context=context,
+        rows=rows,
+    )
+
+
 def _normalize_capacities(capacities_bytes: Iterable[int]) -> tuple[int, ...]:
     values = tuple(capacities_bytes)
     if not values:
@@ -685,3 +804,45 @@ def _workload_byte_context(
         ),
         referenced_expert_keys=referenced_keys,
     )
+
+
+def _stage_qualified_workload_byte_context(
+    trace: RoutingTraceV2,
+    expert_sizes_bytes: Mapping[RoutingExpertKeyV2, int],
+) -> StageQualifiedWorkloadByteContext:
+    required_by_event = tuple(event.expert_requests for event in trace.events)
+    referenced_keys = tuple(
+        sorted(
+            {key for required in required_by_event for key in required},
+            key=_stage_qualified_key_sort_key,
+        )
+    )
+    missing_sizes = tuple(
+        key for key in referenced_keys if key not in expert_sizes_bytes
+    )
+    if missing_sizes:
+        raise ValueError(
+            "expert size map is missing referenced stage-qualified experts: "
+            + ", ".join(str(key) for key in missing_sizes)
+        )
+    return StageQualifiedWorkloadByteContext(
+        unique_referenced_expert_count=len(referenced_keys),
+        unique_referenced_expert_bytes=sum(
+            expert_sizes_bytes[key] for key in referenced_keys
+        ),
+        maximum_atomic_event_working_set_bytes=max(
+            (
+                sum(expert_sizes_bytes[key] for key in required)
+                for required in required_by_event
+            ),
+            default=0,
+        ),
+        referenced_expert_keys=referenced_keys,
+    )
+
+
+def _stage_qualified_key_sort_key(
+    key: RoutingExpertKeyV2,
+) -> tuple[int, int, int]:
+    stage, layer_id, expert_id = key
+    return (0 if stage == "encoder" else 1), layer_id, expert_id

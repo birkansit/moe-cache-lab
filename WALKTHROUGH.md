@@ -15,6 +15,12 @@ The interpretation rule throughout is:
   assumptions; and
 - a successful integrity check does not change any of those evidence classes.
 
+The primary workflow is `produce/import -> validate -> analyze -> compatible
+pre-flight -> bundle`. Canonical JSONL is the external boundary, so a producer
+may write it without importing `ProducerResult` or another package-internal
+API. `validate-trace` proves only that the file satisfies its declared
+canonical contract; it does not prove producer semantics or non-interference.
+
 ## 1. Install only the offline base package
 
 From the repository root, create an environment and install the base package:
@@ -220,7 +226,41 @@ caller-explicit, preserves caller order, and has no hidden or recommended
 default. Normalized configured-universe entropy and cumulative top-k shares are
 descriptive routing diagnostics, not recommendations.
 
-The legacy `--preflight-config` path intentionally rejects trace v2 because its
-expert-size keys are v1 layer-qualified rather than stage-qualified. Do not
-bypass that boundary by flattening or offsetting stages. This project does not
-provide a public Switch collection command or a v2 cache/preflight pipeline.
+For a stage-qualified pre-flight report, use config v3. The separate tracked
+synthetic fixture demonstrates the command without becoming a second evidence-
+interpretation walkthrough:
+
+```powershell
+moe-cache-lab analyze examples\no-download-stage-qualified-preflight\trace.jsonl `
+  --preflight-config examples\no-download-stage-qualified-preflight\preflight-config.json `
+  --workload-id synthetic-stage-qualified-demo `
+  --output artifacts\stage-qualified-preflight-report.md `
+  --json-output artifacts\stage-qualified-preflight-report.json
+```
+
+Its config assigns different sizes to `(encoder, 0, 1)` and
+`(decoder, 0, 1)`; they remain distinct throughout simulation and output. An
+explicit capacity-unassigned event produces no expert request. Config v1/v2 is
+still rejected for trace v2, and config v3 is rejected for trace v1.
+
+`--workload-id` labels routing evidence only. It does not affect cache or
+transfer accounting. `--top-k` is not accepted together with v2 pre-flight;
+run the descriptive command separately for caller-explicit locality. V2
+lifecycle analysis remains deferred, and no public Switch collection command
+is added by this workflow.
+
+## 10. Emit the canonical boundary from an unrelated producer
+
+The packaged
+[`examples/external-producer-no-model/`](examples/external-producer-no-model/)
+example is the separate end-to-end interoperability path. Its standalone
+standard-library script imports neither `moe_cache_lab` nor a model framework;
+it emits deterministic synthetic trace-v2 JSONL directly, then uses the
+installed CLI to validate, analyze, run compatible stage-qualified pre-flight,
+and create/verify a bundle.
+
+That example does not replace the evidence-interpretation walkthrough above.
+Its event source is **SYNTHETIC**, validation establishes canonical-file
+validity only, cache results remain **SIMULATED**, transfer service remains
+**ESTIMATED**, and runtime performance or physical residency is **NOT
+ESTABLISHED**.

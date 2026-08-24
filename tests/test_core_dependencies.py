@@ -35,6 +35,8 @@ builtins.__import__ = guarded
 import moe_cache_lab
 import moe_cache_lab.cli as cli
 import moe_cache_lab.preflight
+import moe_cache_lab.producer
+import moe_cache_lab.trace_validation
 import moe_cache_lab.workflow
 from moe_cache_lab.trace import load_trace_schema
 assert load_trace_schema()['$id'] == 'urn:moe-cache-lab:schema:routing-trace:1'
@@ -58,7 +60,7 @@ print(moe_cache_lab.__version__)
             text=True,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(completed.stdout.strip(), "0.7.0")
+        self.assertEqual(completed.stdout.strip(), "0.8.0")
 
     def test_missing_dependency_is_translated_to_bounded_granite_error(self) -> None:
         missing = ModuleNotFoundError("No module named 'torch'", name="torch")

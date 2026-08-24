@@ -1,0 +1,27 @@
+{
+  "format": "moe-cache-lab.preflight-config",
+  "format_version": 3,
+  "expert_sizes": [
+    {"routing_stage": "encoder", "layer_id": 0, "expert_id": 1, "size_bytes": 3},
+    {"routing_stage": "decoder", "layer_id": 0, "expert_id": 1, "size_bytes": 5},
+    {"routing_stage": "decoder", "layer_id": 0, "expert_id": 2, "size_bytes": 4}
+  ],
+  "capacities_bytes": [5, 9],
+  "policies": ["lru", "lfu"],
+  "hardware_profiles": [
+    {
+      "name": "fictional-fast-link",
+      "h2d_payload_bandwidth_bytes_per_second": 20,
+      "setup_latency_ns_per_transfer_operation": 50000000
+    },
+    {
+      "name": "fictional-slow-link",
+      "h2d_payload_bandwidth_bytes_per_second": 10,
+      "setup_latency_ns_per_transfer_operation": 100000000
+    }
+  ],
+  "transfer_operation_plans": [
+    {"name": "one-operation", "operations_per_logical_load": 1},
+    {"name": "two-chunks", "operations_per_logical_load": 2}
+  ]
+}

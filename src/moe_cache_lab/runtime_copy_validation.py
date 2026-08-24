@@ -1,4 +1,4 @@
-"""Predictor, comparer, and evidence helpers for Issue #54.
+"""Predictor, comparer, and evidence helpers for bounded CPU copy validation.
 
 The predictor is the only role that imports the canonical byte-cache
 simulation.  The independent executor lives in :mod:`runtime_copy_executor`

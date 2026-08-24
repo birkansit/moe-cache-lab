@@ -1,0 +1,2 @@
+{"format":"moe-cache-lab.routing-jsonl","format_version":1,"model_id":"synthetic/v1-minimal","record_type":"metadata","experts_per_token":1,"num_experts":8}
+{"layer":3,"phase":"prompt","record_type":"routing_selection","selected_experts":[5],"selected_probabilities":[0.75],"token_position":0}

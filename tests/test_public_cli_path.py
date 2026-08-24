@@ -88,6 +88,48 @@ def _v2_trace() -> RoutingTraceV2:
     )
 
 
+def _v3_preflight_config_payload() -> dict:
+    return {
+        "format": "moe-cache-lab.preflight-config",
+        "format_version": 3,
+        "expert_sizes": [
+            {
+                "routing_stage": "encoder",
+                "layer_id": 0,
+                "expert_id": 1,
+                "size_bytes": 16,
+            }
+        ],
+        "capacities_bytes": [16],
+        "policies": ["lru"],
+        "hardware_profiles": [
+            {
+                "name": "synthetic",
+                "h2d_payload_bandwidth_bytes_per_second": 1000,
+                "setup_latency_ns_per_transfer_operation": 10,
+            }
+        ],
+        "transfer_operation_plans": [
+            {"name": "one", "operations_per_logical_load": 1}
+        ],
+    }
+
+
+def _legacy_preflight_config_payload(version: int) -> dict:
+    payload = _v3_preflight_config_payload()
+    payload["format_version"] = version
+    payload["expert_sizes"] = [
+        {"layer_id": 0, "expert_id": 1, "size_bytes": 16}
+    ]
+    if version == 1:
+        for profile in payload["hardware_profiles"]:
+            profile["setup_latency_ns_per_loaded_expert"] = profile.pop(
+                "setup_latency_ns_per_transfer_operation"
+            )
+        del payload["transfer_operation_plans"]
+    return payload
+
+
 def _invoke(arguments: list[str]) -> tuple[str, str]:
     stdout = io.StringIO()
     stderr = io.StringIO()
@@ -270,7 +312,8 @@ class PublicCliPathTests(unittest.TestCase):
 
     def test_v2_invalid_top_k_and_legacy_preflight_reject_boundedly(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            trace_path = write_trace_v2(Path(temporary) / "trace.jsonl", _v2_trace())
+            directory = Path(temporary)
+            trace_path = write_trace_v2(directory / "trace.jsonl", _v2_trace())
             for ranks, message in (
                 (["1", "1"], "duplicate"),
                 (["5"], "exceeds"),
@@ -285,15 +328,106 @@ class PublicCliPathTests(unittest.TestCase):
                 self.assertEqual(raised.exception.code, 2)
                 self.assertIn(message, stderr.getvalue())
 
+            for version in (1, 2):
+                config_path = directory / f"preflight-v{version}.json"
+                config_path.write_text(
+                    json.dumps(
+                        _legacy_preflight_config_payload(version), sort_keys=True
+                    ),
+                    encoding="utf-8",
+                )
+                stderr = io.StringIO()
+                with self.subTest(config_version=version), patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "moe-cache-lab",
+                        "analyze",
+                        str(trace_path),
+                        "--preflight-config",
+                        str(config_path),
+                    ],
+                ), contextlib.redirect_stderr(stderr), self.assertRaises(
+                    SystemExit
+                ) as raised:
+                    main()
+                self.assertEqual(raised.exception.code, 2)
+                self.assertIn(
+                    "requires stage-qualified preflight config format_version 3",
+                    stderr.getvalue(),
+                )
+
+    def test_stage_qualified_config_rejects_v1_without_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            v1_path = write_trace(directory / "trace-v1.jsonl", _v1_trace())
+            config_path = directory / "preflight-v3.json"
+            config_path.write_text(
+                json.dumps(_v3_preflight_config_payload(), sort_keys=True),
+                encoding="utf-8",
+            )
+            markdown = directory / "trace-v1.md"
+            json_path = directory / "trace-v1.json"
             stderr = io.StringIO()
             with patch.object(
                 sys,
                 "argv",
-                ["moe-cache-lab", "analyze", str(trace_path), "--preflight-config", "unused.json"],
-            ), contextlib.redirect_stderr(stderr), self.assertRaises(SystemExit) as raised:
+                [
+                    "moe-cache-lab",
+                    "analyze",
+                    str(v1_path),
+                    "--preflight-config",
+                    str(config_path),
+                    "--output",
+                    str(markdown),
+                    "--json-output",
+                    str(json_path),
+                ],
+            ), contextlib.redirect_stderr(stderr), self.assertRaises(
+                SystemExit
+            ) as raised:
                 main()
             self.assertEqual(raised.exception.code, 2)
-            self.assertIn("not stage-qualified for trace v2", stderr.getvalue())
+            self.assertIn("cannot be used with trace v1", stderr.getvalue())
+            self.assertFalse(markdown.exists())
+            self.assertFalse(json_path.exists())
+
+    def test_stage_qualified_config_rejects_v1_lifecycle_before_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            config_path = directory / "preflight-v3.json"
+            config_path.write_text(
+                json.dumps(_v3_preflight_config_payload(), sort_keys=True),
+                encoding="utf-8",
+            )
+            stderr = io.StringIO()
+            with patch(
+                "moe_cache_lab.preflight.run_preflight_lifecycle_analysis",
+                side_effect=AssertionError("lifecycle must not run"),
+            ) as lifecycle, patch.object(
+                sys,
+                "argv",
+                [
+                    "moe-cache-lab",
+                    "analyze-lifecycle",
+                    str(directory / "unused-manifest.json"),
+                    "--preflight-config",
+                    str(config_path),
+                    "--output",
+                    str(directory / "report.md"),
+                    "--json-output",
+                    str(directory / "report.json"),
+                ],
+            ), contextlib.redirect_stderr(stderr), self.assertRaises(
+                SystemExit
+            ) as raised:
+                main()
+
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("cannot be used with v1 lifecycle", stderr.getvalue())
+            lifecycle.assert_not_called()
+            self.assertFalse((directory / "report.md").exists())
+            self.assertFalse((directory / "report.json").exists())
 
     def test_bundle_create_maps_repeated_inputs_and_verify_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as temporary, patch(
