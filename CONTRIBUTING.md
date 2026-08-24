@@ -11,7 +11,9 @@ Contributions must preserve these boundaries:
 
 - The model's native router is authoritative. Do not override or modify routing
   decisions in order to improve cache results.
-- Router selections and explicitly timed experiments are **measured**.
+- Routing selections are **measured** only when trace provenance establishes
+  an actual observation; explicitly timed experiments are measured only inside
+  their frozen workload and environment boundary.
 - Cache hits, misses, residency, and policy outcomes from trace replay are
   **simulated**.
 - Transfer counts derived from simulated expert loads are **estimated**.
@@ -24,9 +26,9 @@ Contributions must preserve these boundaries:
 
 ## Environment
 
-The current package version is `0.7.0` and requires Python 3.10 or newer. The
-base package requires neither PyTorch nor Transformers. Model-specific
-collection dependencies are isolated behind optional extras:
+The current package version is `0.8.0` and supports Python 3.10, 3.11, and
+3.12. The base package requires neither PyTorch nor Transformers.
+Model-specific collection dependencies are isolated behind optional extras:
 
 - `[granite]` pins the validated PyTorch 2.12.0 and Transformers 5.12.0 pair
   used by the built-in public Granite collection CLI.
@@ -47,12 +49,24 @@ errors.
 
 ## Tests
 
-The source-tree test command used by the portable CI is:
+CI separates portable core/offline coverage from the reviewed
+ML/full-regression environment.
+
+The installed-package core/offline matrix runs on Python 3.10, 3.11, and 3.12.
+It installs the base package with Torch and Transformers deliberately absent,
+runs `scripts/audit_core_workflow.py` against the installed package, and
+exercises focused portable core contracts. Contributors working only on
+core/offline behavior do not need the optional ML dependencies.
+
+The full source-tree regression command is:
 
 ```powershell
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
 ```
+
+CI runs this command separately in the reviewed Python 3.10 ML/full-regression
+lane, with Torch 2.12.0 CPU and Transformers 5.12.0.
 
 The CI suite must not download the Granite model or run performance-sensitive
 hardware benchmarks. Real model collection, Windows HIP probing, and timing

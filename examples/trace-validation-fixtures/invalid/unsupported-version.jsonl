@@ -1,0 +1,2 @@
+{"format":"moe-cache-lab.routing-jsonl","format_version":3,"model_id":"synthetic/unsupported-version","record_type":"metadata"}
+{"layer":3,"phase":"prompt","record_type":"routing_selection","selected_experts":[5],"token_position":0}

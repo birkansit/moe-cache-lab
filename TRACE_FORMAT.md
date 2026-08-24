@@ -223,6 +223,62 @@ rejected.
 - Writers must choose their target version explicitly. Readers reject
   unsupported versions rather than guessing, migrating, sorting, or repairing.
 
+The canonical cross-format policy, including independent package/trace/config
+version namespaces and the rule that a new model/runtime alone does not require
+a new trace version, is in [`COMPATIBILITY.md`](COMPATIBILITY.md).
+
+## Validation command and official fixtures
+
+Validate one canonical file without running analysis, pre-flight, cache, cost,
+bundle, collector, or model code:
+
+```text
+moe-cache-lab validate-trace TRACE.jsonl
+moe-cache-lab validate-trace TRACE.jsonl --json
+```
+
+Human mode writes a bounded canonical summary to stdout and exits `0` for a
+valid file. Invalid input writes one bounded failure to stderr and exits `2`.
+Machine mode writes exactly one newline-terminated JSON object to stdout for
+both valid and invalid input, keeps stderr empty for expected validation
+failures, and also exits `2` when invalid.
+
+Machine output uses the independent family
+`moe-cache-lab.trace-validation`, `format_version` 1. Its
+`trace_format_version` field is separate and appears only when the declared
+routing-trace version can be established without guessing. Success objects
+contain `valid: true` and a bounded canonical `summary`; failure objects contain
+`valid: false`, a stable `error_code`, a bounded `message`, and `line_number`
+only when the authoritative failure provides a reliable line.
+
+The version-1 error taxonomy is:
+
+- `unsupported_format_version`, `invalid_json`, `invalid_record_shape`;
+- `unknown_field`, `duplicate_event_identity`, `chronology_regression`;
+- `invalid_stage_or_phase`, `invalid_assignment`,
+  `invalid_expert_identity`, `invalid_trace_metadata`;
+- `empty_or_missing_trace`, `io_error`.
+
+The validator selects the existing authoritative v1/v2 reader exactly once. It
+does not retry another version, sort, repair, migrate, deduplicate, or collect
+additional downstream errors. The synthetic official corpus in
+[`examples/trace-validation-fixtures/`](examples/trace-validation-fixtures/)
+freezes valid and invalid cross-record examples that complement the schemas.
+
+The packaged
+[`examples/external-producer-no-model/`](examples/external-producer-no-model/)
+workflow shows a standard-library-only script writing this external JSONL
+boundary directly before invoking validation and the supported offline tools.
+
+## External producer conformance
+
+Passing `validate-trace` or the strict reader establishes canonical-file
+validity only. It does not
+by itself validate the producer's native observation boundary, chronology,
+identity mapping, provenance, or non-interference. The normative requirements
+and bounded Granite/Switch grounding are in
+[`PRODUCER_CONFORMANCE.md`](PRODUCER_CONFORMANCE.md).
+
 ## Evidence boundary
 
 The trace family stores routing observations. They are **MEASURED** only when

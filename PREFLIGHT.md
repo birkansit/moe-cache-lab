@@ -6,19 +6,25 @@ The built-in collector is currently Granite/Transformers-specific. After trace c
 
 ## Trace-version boundary
 
-The established byte-cache pre-flight configuration and report pipeline is for
-canonical routing trace **v1 only**. Its expert-size identities are
-`(layer_id, expert_id)`. Existing v1 inputs and outputs remain supported without
-semantic changes.
+The public single-trace workflow supports two exact identity pairings:
 
-Canonical trace v2 is available through the version-aware descriptive
-`analyze` path, but `analyze --preflight-config` intentionally rejects v2. A v2
-expert identity is stage-qualified as `(routing_stage, layer, expert_id)`;
-encoder and decoder layers must never be flattened together or given invented
-numeric offsets. Stage-qualified v2 pre-flight simulation is outside the
-current contract.
+- canonical trace v1 with config v1/v2 keeps layer-qualified
+  `(layer_id, expert_id)` identity and established output bytes;
+- canonical trace v2 with config v3 keeps stage-qualified
+  `(routing_stage, layer_id, expert_id)` identity through routing evidence,
+  cache simulation, transfer estimates, JSON, and Markdown.
 
-## Tracked no-download demo
+All other trace/config combinations reject. Encoder and decoder layers are
+never flattened or assigned invented numeric offsets. An unassigned v2 event
+remains present in routing evidence but produces zero cache requests and no
+cache-state change.
+
+Routing-trace and pre-flight-config version numbers are independent namespaces;
+matching numbers do not imply compatibility. The canonical cross-format rules
+and current supported combinations are defined in
+[`COMPATIBILITY.md`](COMPATIBILITY.md).
+
+## Tracked no-download demos
 
 A deterministic synthetic example is tracked at [`examples/no-download-preflight/`](examples/no-download-preflight/). It requires no model download, GPU, CUDA/ROCm, or vendor SDK:
 
@@ -30,6 +36,22 @@ moe-cache-lab analyze examples\no-download-preflight\trace.jsonl `
 ```
 
 The demo trace is synthetic and its transfer profiles are deliberately fictional assumptions. The tracked `expected.sha256` file pins the deterministic Markdown and JSON output bytes.
+
+A separate deterministic stage-qualified fixture is tracked at
+[`examples/no-download-stage-qualified-preflight/`](examples/no-download-stage-qualified-preflight/):
+
+```powershell
+moe-cache-lab analyze examples\no-download-stage-qualified-preflight\trace.jsonl `
+  --preflight-config examples\no-download-stage-qualified-preflight\preflight-config.json `
+  --workload-id synthetic-stage-qualified-demo `
+  --output artifacts\stage-qualified-preflight-report.md `
+  --json-output artifacts\stage-qualified-preflight-report.json
+```
+
+It is also synthetic and uses fictional assumptions. It deliberately preserves
+different sizes for the same numerical layer/expert IDs in encoder and decoder,
+and includes one explicit capacity-unassigned event. Its `expected.sha256`
+pins the exact format-version-3 report bytes.
 
 ## Config shape
 
@@ -111,7 +133,34 @@ This plan is generic and assumption-driven. It does not assert that a logical
 expert is independently movable, that packed Granite parameters are copied in
 these chunks, or that batching/coalescing occurs in a real runtime.
 
-## Cache lifecycle comparison
+## Stage-qualified config version 3
+
+Config v3 retains the config-v2 capacity, policy, hardware-profile, and
+transfer-operation-plan meanings. Its expert-size records add an explicit
+`routing_stage`:
+
+```json
+{
+  "routing_stage": "encoder",
+  "layer_id": 0,
+  "expert_id": 1,
+  "size_bytes": 3145728
+}
+```
+
+The stage is exactly `encoder` or `decoder`; it is never inferred. V3 permits
+an empty expert-size array for an all-unassigned trace, but every expert
+actually requested by an assigned event must have its exact stage-qualified
+size. Extra valid entries are inert. The structured pre-flight output remains
+in the independent `moe-cache-lab.preflight-analysis` family and uses format
+version 3 for this stage-qualified shape.
+
+`--workload-id` labels only the descriptive routing-evidence workload. It does
+not change trace events, cache replay, byte accounting, or transfer estimates.
+`--top-k` cannot be combined with v2 pre-flight analysis; run the descriptive
+v2 analyzer separately when caller-explicit locality ranks are needed.
+
+## Cache lifecycle comparison (v1 only)
 
 The same expert-size, capacity, and policy configuration can compare two
 explicit cache reset assumptions across evaluation traces in a validated corpus
@@ -172,6 +221,10 @@ Lifecycle comparison changes reset boundaries only. It does not change
 layer-qualified `(layer_id, expert_id)` identity, atomic token/layer working
 sets, or LRU/LFU admission and eviction behavior. Chronology is never inferred
 from workload names, prompt categories, or semantics.
+
+Stage-qualified v2 lifecycle orchestration remains deferred. The existing
+`analyze-lifecycle` command rejects config v3 rather than flattening stages or
+silently treating a v2 workload as v1.
 
 Cache outcomes and demand/eviction bytes remain **SIMULATED**, not measured
 runtime data movement. Hardware profiles and transfer-operation plans do not

@@ -1,9 +1,9 @@
 # Frozen Stage 1 runtime-fidelity experiment
 
-Status: **INDEPENDENTLY APPROVED AND FROZEN**. Stage 1 work may proceed only
+Status: **HISTORICALLY FROZEN**. Stage 1 work may proceed only
 through separately authorized, bounded work packages. Real Stage 1 collection
 remains unauthorized until its preceding implementation and review gates pass.
-Any material change requires a recorded director decision and renewed review
+Any material change requires a recorded protocol decision and renewed review
 before results are inspected.
 
 ## 1. Purpose and claim boundary

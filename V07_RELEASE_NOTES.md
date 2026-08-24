@@ -52,9 +52,13 @@ accelerator.
 
 The established `analyze --preflight-config` cache and transfer-service pipeline
 remains v1-only because its expert-size configuration uses layer-qualified v1
-identities rather than stage-qualified v2 identities. V2 supports descriptive
-offline analysis; it does not add v2 cache simulation or v2 pre-flight
-semantics. Existing v1 report bytes and historical evidence remain unchanged.
+identities rather than stage-qualified v2 identities. The library-level
+`simulate_versioned_byte_cache()` API supports canonical v1 and v2 traces; its
+v2 path preserves `(routing_stage, layer, expert_id)` identity and gives an
+unassigned event zero expert requests and zero cache-state changes. Those
+outcomes remain **SIMULATED**. V0.7 does not provide a stage-qualified v2
+preflight config, transfer-cost/lifecycle orchestration, or public v2 pre-flight
+workflow. Existing v1 report bytes and historical evidence remain unchanged.
 
 Routing-derived descriptive output is **MEASURED only when trace provenance
 establishes actual measurement**. Cache hits, misses, loads, evictions,
@@ -67,6 +71,3 @@ coverage, scientific correctness, native caching, physical expert residency,
 real transfers, end-to-end latency, throughput, tokens/sec, acceleration, an
 optimal policy, or an optimal capacity. A smaller simulated or estimated value
 is not a measured speedup or a deployment recommendation.
-
-Version 0.7.0 does not claim that a Git tag, GitHub Release, package-index
-publication, repository synchronization, or visibility change already exists.

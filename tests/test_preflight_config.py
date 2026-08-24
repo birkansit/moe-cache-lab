@@ -97,7 +97,7 @@ class PreflightConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported preflight config format"):
             parse_preflight_config_data(payload)
 
-        for invalid_version in (3, True, 1.0):
+        for invalid_version in (4, True, 1.0):
             payload = _config_payload()
             payload["format_version"] = invalid_version
             with self.subTest(format_version=invalid_version), self.assertRaisesRegex(

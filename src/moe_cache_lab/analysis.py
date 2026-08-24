@@ -103,7 +103,7 @@ class ReuseGapSummary:
     First uses produce no gap sample.  Immediate reuse therefore has gap zero.
     ``mean_gap_events`` is exact and is ``None`` when there are no reuses.
 
-    The top-level Issue #1 summary uses layer-qualified ``(layer_id, expert_id)``
+    The top-level routing summary uses layer-qualified ``(layer_id, expert_id)``
     identities over the full validated trace sequence.  Phase-layer summaries
     use numeric expert IDs over only their own ``(phase, layer)`` event stream.
     """

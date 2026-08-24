@@ -1,12 +1,12 @@
-# V0.7 routing trace v2 design
+# V0.7 routing trace v2 historical design record
 
-Status: **proposed implementation-ready contract; design only**.
+Status: **accepted historical design basis for canonical trace v2**.
 
-This private-development note defines the smallest routing-trace revision that
-can represent the admitted SwitchTransformers candidate without changing the
-meaning of canonical trace v1. It is not a schema, validator, collector, model
-support, or runtime result. No model was instantiated and no routing was
-measured for this gate.
+This record defined the smallest routing-trace revision able to represent the
+inspected SwitchTransformers candidate without changing the meaning of
+canonical trace v1. The design record itself is not a schema, validator,
+collector, model-support claim, or runtime result. No model was instantiated
+and no routing was measured during this design work.
 
 ## Decision summary
 
@@ -59,9 +59,9 @@ implementation, and official Transformers `5.12.0` source:
   dtype. The sparse layer indices in the inspected 5.12.0 implementation are
   1, 3, 5, 7, 9, and 11 in each stack.
 
-The local installed source was Transformers `5.12.0`. Configuration inspection
-retrieved only the 1,860-byte official config in memory. No weight, tokenizer,
-or generation file was requested or retained.
+The source basis was Transformers `5.12.0`. Configuration inspection retrieved
+only the 1,860-byte official config in memory. No weight, tokenizer, or
+generation file was requested or retained.
 
 ## Contract requirements
 
@@ -257,13 +257,13 @@ can remain unchanged:
 - **MEASURED** routing, **SIMULATED** cache outcomes, and **ESTIMATED** transfer
   service terminology.
 
-Future code changes are nevertheless required at the interfaces: version
-dispatch, a v2 event/metadata representation, validation, three-part expert
-keys, stage-qualified expert-size configuration, request extraction, empty-set
-event accounting, lifecycle/report fields, and any view/manifest code that
-currently assumes v1 `RoutingEvent` or `(layer, expert_id)`. The existing v1
-Python objects, schema, validators, caches, fixtures, and results must continue
-to behave exactly as before.
+At design time, implementation work remained necessary at the interfaces:
+version dispatch, a v2 event/metadata representation, validation, three-part
+expert keys, stage-qualified expert-size configuration, request extraction,
+empty-set event accounting, lifecycle/report fields, and any view/manifest code
+that assumed v1 `RoutingEvent` or `(layer, expert_id)`. The requirement was that
+existing v1 Python objects, schema, validators, caches, fixtures, and results
+continue to behave exactly as before.
 
 ## Synthetic JSONL-shaped examples
 
@@ -373,22 +373,20 @@ No unknown permits fabrication, omission, stage flattening, or chronology
 repair. A smoke-test mismatch rejects the proposed collector path and triggers
 a separate contract review.
 
-## Proposed next milestone
+## Subsequent implementation boundary
 
-If this design passes review, the next milestone is a separate trace-v2
-schema/reader/writer/validator implementation gate with synthetic valid and
-adversarial tests plus unchanged v1 compatibility and deterministic no-download
-outputs. It must not load Switch weights or implement a collector.
+The design separated trace-v2 schema/reader/writer/validator implementation,
+with synthetic valid and adversarial tests plus unchanged v1 compatibility and
+deterministic no-download outputs, from any model execution. That implementation
+boundary did not require loading Switch weights or implementing a collector.
 
-Only after that implementation is independently reviewed may a separate,
-resource-admitted Switch collector and real smoke-test gate be considered.
-V0.7-A remains incomplete after this design note; no v0.7-B work is authorized.
+A later, separate resource-admitted Switch collector and real smoke test could
+be considered only after the canonical contract was implemented and validated.
 
-## Evidence and publication boundary
+## Evidence boundary
 
 This note records source/config inspection and a proposed contract. It creates
 no **MEASURED** Switch routing evidence, no **SIMULATED** Switch cache result,
 and no **ESTIMATED** Switch transfer result. It does not establish multi-model
 support, model correctness, expert semantics, physical residency, latency,
-throughput, or speedup. It is private-development material and authorizes no
-public repository, PR, release, tag, package publication, or PyPI action.
+throughput, or speedup.

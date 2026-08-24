@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "moe-cache-lab"
-version = "0.7.0"
-description = "Trace-driven MoE pre-flight analysis for expert caching/offloading research."
+version = "0.8.0"
+description = "Trace-driven pre-flight analysis for MoE routing, expert caching, and offloading research."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -13,6 +13,8 @@ license-files = ["LICENSE"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
 dependencies = []
 
@@ -32,6 +34,7 @@ moe-cache-lab = "moe_cache_lab.cli:main"
 [project.urls]
 Repository = "https://github.com/birkansit/moe-cache-lab"
 Issues = "https://github.com/birkansit/moe-cache-lab/issues"
+Documentation = "https://github.com/birkansit/moe-cache-lab#readme"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -42,9 +45,30 @@ moe_cache_lab = ["schemas/*.json"]
 [tool.setuptools.data-files]
 "share/doc/moe-cache-lab" = [
   "README.md",
+  "COMPATIBILITY.md",
+  "CONTRIBUTING.md",
+  "EXTERNAL_RUNTIME_INTEROP.md",
+  "PRODUCER_CONFORMANCE.md",
   "WALKTHROUGH.md",
   "PREFLIGHT.md",
   "TRACE_FORMAT.md",
+  "V05_RELEASE_NOTES.md",
   "V06_RELEASE_NOTES.md",
   "V07_RELEASE_NOTES.md",
+  "V08_RELEASE_NOTES.md",
+]
+"share/moe-cache-lab/examples/trace-validation-fixtures" = [
+  "examples/trace-validation-fixtures/README.md",
+]
+"share/moe-cache-lab/examples/trace-validation-fixtures/valid" = [
+  "examples/trace-validation-fixtures/valid/*.jsonl",
+]
+"share/moe-cache-lab/examples/trace-validation-fixtures/invalid" = [
+  "examples/trace-validation-fixtures/invalid/*.jsonl",
+]
+"share/moe-cache-lab/examples/external-producer-no-model" = [
+  "examples/external-producer-no-model/README.md",
+  "examples/external-producer-no-model/expected.sha256",
+  "examples/external-producer-no-model/preflight-config.json",
+  "examples/external-producer-no-model/producer.py",
 ]

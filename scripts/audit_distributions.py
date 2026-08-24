@@ -11,44 +11,99 @@ import zipfile
 
 
 EXPECTED_NAME = "moe-cache-lab"
+EXPECTED_SUMMARY = (
+    "Trace-driven pre-flight analysis for MoE routing, expert caching, and "
+    "offloading research."
+)
 EXPECTED_LICENSE_EXPRESSION = "Apache-2.0"
+EXPECTED_PYTHON_CLASSIFIERS = {
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+}
 EXPECTED_OPTIONAL_REQUIREMENTS = {
     'torch==2.12.0; extra == "granite"',
     'transformers==5.12.0; extra == "granite"',
     'torch==2.12.0; extra == "switch"',
     'transformers==5.12.0; extra == "switch"',
 }
+TRACE_VALIDATION_FIXTURES = (
+    "README.md",
+    "valid/v1-minimal.jsonl",
+    "valid/v2-decoder-only.jsonl",
+    "valid/v2-encoder-decoder.jsonl",
+    "valid/v2-unassigned.jsonl",
+    "invalid/chronology-regression.jsonl",
+    "invalid/duplicate-event-identity.jsonl",
+    "invalid/stage-regression.jsonl",
+    "invalid/fabricated-unassigned-selection.jsonl",
+    "invalid/unsupported-version.jsonl",
+    "invalid/unknown-field.jsonl",
+)
+EXTERNAL_PRODUCER_EXAMPLE_FILES = (
+    "README.md",
+    "expected.sha256",
+    "preflight-config.json",
+    "producer.py",
+)
 REQUIRED_PACKAGE_MODULES = (
     "moe_cache_lab/__init__.py",
+    "moe_cache_lab/analysis.py",
+    "moe_cache_lab/analysis_output.py",
     "moe_cache_lab/byte_cache.py",
+    "moe_cache_lab/cache.py",
+    "moe_cache_lab/cli.py",
+    "moe_cache_lab/collector.py",
     "moe_cache_lab/cross_model_locality.py",
     "moe_cache_lab/evidence.py",
     "moe_cache_lab/experiment_bundle.py",
     "moe_cache_lab/granite_dependencies.py",
     "moe_cache_lab/hardware_cost.py",
     "moe_cache_lab/preflight.py",
+    "moe_cache_lab/preflight_config.py",
     "moe_cache_lab/preflight_output.py",
+    "moe_cache_lab/producer.py",
+    "moe_cache_lab/report.py",
     "moe_cache_lab/runtime_copy_executor.py",
     "moe_cache_lab/runtime_copy_validation.py",
     "moe_cache_lab/sensitivity_summary.py",
-    "moe_cache_lab/trace.py",
+    "moe_cache_lab/stage1.py",
+    "moe_cache_lab/stage1_benchmark.py",
     "moe_cache_lab/switch_collector.py",
     "moe_cache_lab/switch_dependencies.py",
+    "moe_cache_lab/trace.py",
+    "moe_cache_lab/trace_v2.py",
+    "moe_cache_lab/trace_validation.py",
+    "moe_cache_lab/v04.py",
+    "moe_cache_lab/v04_aggregation.py",
     "moe_cache_lab/v2_analysis_output.py",
+    "moe_cache_lab/views.py",
+    "moe_cache_lab/workflow.py",
     "moe_cache_lab/schemas/routing-trace-v1.schema.json",
     "moe_cache_lab/schemas/routing-trace-v2.schema.json",
 )
 REQUIRED_RELEASE_DOCS = (
     "README.md",
+    "COMPATIBILITY.md",
+    "CONTRIBUTING.md",
+    "EXTERNAL_RUNTIME_INTEROP.md",
+    "PRODUCER_CONFORMANCE.md",
     "WALKTHROUGH.md",
     "PREFLIGHT.md",
     "TRACE_FORMAT.md",
+    "V05_RELEASE_NOTES.md",
     "V06_RELEASE_NOTES.md",
     "V07_RELEASE_NOTES.md",
+    "V08_RELEASE_NOTES.md",
 )
 REQUIRED_SDIST_PATHS = (
     "LICENSE",
     "MANIFEST.in",
+    "COMPATIBILITY.md",
+    "CONTRIBUTING.md",
+    "EXTERNAL_RUNTIME_INTEROP.md",
+    "PRODUCER_CONFORMANCE.md",
     "PREFLIGHT.md",
     "README.md",
     "WALKTHROUGH.md",
@@ -56,28 +111,60 @@ REQUIRED_SDIST_PATHS = (
     "V05_RELEASE_NOTES.md",
     "V06_RELEASE_NOTES.md",
     "V07_RELEASE_NOTES.md",
+    "V08_RELEASE_NOTES.md",
     "examples/no-download-preflight/README.md",
     "examples/no-download-preflight/expected.sha256",
     "examples/no-download-preflight/preflight-config.json",
     "examples/no-download-preflight/trace.jsonl",
+    "examples/no-download-stage-qualified-preflight/README.md",
+    "examples/no-download-stage-qualified-preflight/expected.sha256",
+    "examples/no-download-stage-qualified-preflight/preflight-config.json",
+    "examples/no-download-stage-qualified-preflight/trace.jsonl",
+    *(
+        f"examples/trace-validation-fixtures/{name}"
+        for name in TRACE_VALIDATION_FIXTURES
+    ),
+    *(
+        f"examples/external-producer-no-model/{name}"
+        for name in EXTERNAL_PRODUCER_EXAMPLE_FILES
+    ),
     "pyproject.toml",
+    "scripts/audit_core_workflow.py",
     "scripts/audit_distributions.py",
+    "scripts/audit_publication_hygiene.py",
     "setup.py",
     "src/moe_cache_lab/__init__.py",
+    "src/moe_cache_lab/analysis.py",
+    "src/moe_cache_lab/analysis_output.py",
     "src/moe_cache_lab/byte_cache.py",
+    "src/moe_cache_lab/cache.py",
+    "src/moe_cache_lab/cli.py",
+    "src/moe_cache_lab/collector.py",
     "src/moe_cache_lab/cross_model_locality.py",
     "src/moe_cache_lab/evidence.py",
     "src/moe_cache_lab/experiment_bundle.py",
+    "src/moe_cache_lab/granite_dependencies.py",
     "src/moe_cache_lab/hardware_cost.py",
     "src/moe_cache_lab/preflight.py",
+    "src/moe_cache_lab/preflight_config.py",
     "src/moe_cache_lab/preflight_output.py",
+    "src/moe_cache_lab/producer.py",
+    "src/moe_cache_lab/report.py",
     "src/moe_cache_lab/runtime_copy_executor.py",
     "src/moe_cache_lab/runtime_copy_validation.py",
     "src/moe_cache_lab/sensitivity_summary.py",
-    "src/moe_cache_lab/trace.py",
+    "src/moe_cache_lab/stage1.py",
+    "src/moe_cache_lab/stage1_benchmark.py",
     "src/moe_cache_lab/switch_collector.py",
     "src/moe_cache_lab/switch_dependencies.py",
+    "src/moe_cache_lab/trace.py",
+    "src/moe_cache_lab/trace_v2.py",
+    "src/moe_cache_lab/trace_validation.py",
+    "src/moe_cache_lab/v04.py",
+    "src/moe_cache_lab/v04_aggregation.py",
     "src/moe_cache_lab/v2_analysis_output.py",
+    "src/moe_cache_lab/views.py",
+    "src/moe_cache_lab/workflow.py",
     "src/moe_cache_lab/schemas/routing-trace-v1.schema.json",
     "src/moe_cache_lab/schemas/routing-trace-v2.schema.json",
 )
@@ -96,6 +183,35 @@ def _validate_version(version: str) -> str:
     return version
 
 
+def _unexpected_archive_paths(names: tuple[str, ...] | set[str]) -> list[str]:
+    unexpected = []
+    model_suffixes = (".ckpt", ".gguf", ".onnx", ".pt", ".pth", ".safetensors")
+    forbidden_directories = {
+        ".eggs",
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "htmlcov",
+        "llama.cpp",
+        "vllm",
+    }
+    for name in names:
+        parts = tuple(part.casefold() for part in Path(name).parts)
+        filename = parts[-1] if parts else ""
+        if any(part in forbidden_directories for part in parts[1:]):
+            unexpected.append(name)
+        elif filename.endswith(model_suffixes):
+            unexpected.append(name)
+        elif ("moe-cache-lab" + "-v05-dev") in name.casefold():
+            unexpected.append(name)
+    return sorted(set(unexpected), key=lambda value: (value.casefold(), value))
+
+
 def audit_wheel(path: Path, version: str) -> None:
     _require(path.is_file(), f"wheel does not exist: {path}")
     _require(
@@ -111,6 +227,12 @@ def audit_wheel(path: Path, version: str) -> None:
 
         _require(metadata.get("Name") == EXPECTED_NAME, "wheel Name metadata mismatch")
         _require(metadata.get("Version") == version, "wheel Version metadata mismatch")
+        _require(metadata.get("Summary") == EXPECTED_SUMMARY, "wheel Summary metadata mismatch")
+        _require(metadata.get("Requires-Python") == ">=3.10", "wheel Requires-Python mismatch")
+        _require(
+            set(metadata.get_all("Classifier", [])) == EXPECTED_PYTHON_CLASSIFIERS,
+            "wheel Python classifiers mismatch",
+        )
         _require(
             metadata.get("License-Expression") == EXPECTED_LICENSE_EXPRESSION,
             "wheel License-Expression metadata mismatch",
@@ -137,21 +259,50 @@ def audit_wheel(path: Path, version: str) -> None:
             any(name.endswith(".dist-info/licenses/LICENSE") for name in names),
             "wheel must contain .dist-info/licenses/LICENSE",
         )
+        unexpected = _unexpected_archive_paths(names)
+        _require(
+            not unexpected,
+            "wheel contains forbidden generated/model/private paths: "
+            + ", ".join(unexpected),
+        )
         missing_modules = [name for name in REQUIRED_PACKAGE_MODULES if name not in names]
         _require(
             not missing_modules,
             "wheel is missing required package modules: " + ", ".join(missing_modules),
         )
-        docs_root = (
-            f"moe_cache_lab-{version}.data/data/share/doc/moe-cache-lab"
-        )
+        docs_root = f"moe_cache_lab-{version}.data/data/share/doc/moe-cache-lab"
         missing_docs = [
-            name for name in REQUIRED_RELEASE_DOCS
-            if f"{docs_root}/{name}" not in names
+            name for name in REQUIRED_RELEASE_DOCS if f"{docs_root}/{name}" not in names
         ]
         _require(
             not missing_docs,
             "wheel is missing release-facing docs: " + ", ".join(missing_docs),
+        )
+        fixtures_root = (
+            f"moe_cache_lab-{version}.data/data/share/moe-cache-lab/"
+            "examples/trace-validation-fixtures"
+        )
+        missing_fixtures = [
+            name for name in TRACE_VALIDATION_FIXTURES
+            if f"{fixtures_root}/{name}" not in names
+        ]
+        _require(
+            not missing_fixtures,
+            "wheel is missing trace-validation fixtures: "
+            + ", ".join(missing_fixtures),
+        )
+        example_root = (
+            f"moe_cache_lab-{version}.data/data/share/moe-cache-lab/"
+            "examples/external-producer-no-model"
+        )
+        missing_example_files = [
+            name for name in EXTERNAL_PRODUCER_EXAMPLE_FILES
+            if f"{example_root}/{name}" not in names
+        ]
+        _require(
+            not missing_example_files,
+            "wheel is missing external-producer example files: "
+            + ", ".join(missing_example_files),
         )
 
 
@@ -168,6 +319,12 @@ def audit_sdist(path: Path, version: str) -> None:
 
     roots = {name.split("/", 1)[0] for name in file_names}
     _require(roots == {expected_root}, f"unexpected sdist archive roots: {sorted(roots)}")
+    unexpected = _unexpected_archive_paths(file_names)
+    _require(
+        not unexpected,
+        "sdist contains forbidden generated/model/private paths: "
+        + ", ".join(unexpected),
+    )
     missing = [
         relative
         for relative in REQUIRED_SDIST_PATHS

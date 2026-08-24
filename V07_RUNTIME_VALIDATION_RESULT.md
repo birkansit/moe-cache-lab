@@ -1,8 +1,8 @@
-# V0.7 bounded Switch CPU physical-copy validation result
+# V0.7 bounded Switch CPU physical-copy validation record
 
-Status: **AGREEMENT** for the exact Issue #54 constructed test replay.
+Status: **AGREEMENT** for the exact constructed test replay.
 
-This private-development result is deliberately narrow. Routing is **MEASURED
+This historical result is deliberately narrow. Routing is **MEASURED
 routing** from the native Switch post-capacity assignment. Expert parameter
 sizes are **DESCRIPTIVE parameter payload bytes**. LRU accounting is
 **SIMULATED cache accounting**. Explicit CPU copies, their logical operand
@@ -12,11 +12,7 @@ inference weight movement or a production cache.
 
 ## Provenance and frozen protocol
 
-- Exact base: `85ee365c7171a66e9bcb67d2d8425aaa0c157cb4`.
-- Branch: `v07/runtime-copy-validation`.
-- Implementation commit: the commit containing this note; its SHA is reported
-  in the branch handoff rather than embedded self-referentially here.
-- Protocol: `V07_RUNTIME_VALIDATION_GATE.md` and private Issue #54.
+- Protocol: `V07_RUNTIME_VALIDATION_GATE.md`.
 - Model: `google/switch-base-8`.
 - Immutable revision:
   `92fe2d22b024d9937146fe097ba3d3a7ba146e1b`.
@@ -32,7 +28,8 @@ Its 96 UTF-8 bytes hashed exactly to
 `30752b0dfe1d6680cc2568d56b6a924c18fd6460ad332e8afdac8de4ddc17e77`
 before model execution. The prompt text is not committed.
 
-All seven already-cached Issue #48 assets were checked by size and SHA-256
+All seven already-cached assets from the earlier Switch smoke were checked by
+size and SHA-256
 before use. No model, tokenizer, generation, or weight asset was downloaded.
 The largest asset, `pytorch_model.bin`, remained the pinned `1,238,895,063`
 bytes with SHA-256
@@ -48,7 +45,8 @@ an admission fact, not a peak-memory measurement.
 
 The existing native Switch collector was used unchanged. It created one fresh
 trace in native callback order, serialized it as canonical trace-v2, validated
-it, and round-tripped it exactly. The private raw trace was not committed.
+it, and round-tripped it exactly. The raw trace was intentionally not retained
+in the source tree.
 
 - Trace SHA-256:
   `0e1ed7a4ea7ee0f627f54ce0a113a2e749ddad49c114e9d3e326a0d10ba3a310`.
@@ -133,10 +131,11 @@ The comparer opened the sealed prediction only after executor completion. All
 integer, identity, byte, key, operator-count, and content checks used exact
 equality with no tolerance or repair. Result: **AGREEMENT**.
 
-The private attempt artifact manifest SHA-256 was
+The attempt artifact manifest SHA-256 was
 `8534596a2d0da683e9d26c1e07bee407eb52f7fda4f7dbf3b0416de185c4edae`.
 The attempt directory, raw trace, raw prompt, payload manifest, copied-value
-observations, and process records remain ignored local/private artifacts.
+observations, and process records were not retained in the source tree because
+they include sensitive/raw execution material beyond this bounded record.
 
 The desktop shell wrapper stopped polling after its short diagnostic timeout,
 but the already-started parent and executor processes continued and finalized
@@ -156,5 +155,5 @@ this same single attempt. No second attempt or protocol change occurred.
 - One public prompt, four fed-back decoder inputs, one model/revision, and zero
   observed drops do not establish general model-family correctness.
 - No expert meaning is inferred from identifiers or routing frequency.
-- The outcome completes only Issue #54. It does not authorize later v0.7-B,
-  v0.7-C, publication, release, or public-repository changes.
+- The outcome is limited to the constructed replay and does not extend to
+  native runtime caching or broader runtime engineering.

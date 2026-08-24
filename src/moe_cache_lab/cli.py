@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 
 from .cache import simulate
 from .granite_dependencies import (
@@ -15,6 +16,11 @@ from .granite_dependencies import (
 from .report import render_report, render_suite_report, write_report
 from .trace import read_trace, write_trace
 from .trace_v2 import RoutingTraceV2, read_versioned_trace
+from .trace_validation import (
+    render_trace_validation_human,
+    render_trace_validation_json,
+    validate_trace_file,
+)
 from .workflow import DEFAULT_CAPACITIES, benchmark_suite, collect_corpus
 
 
@@ -96,7 +102,7 @@ def main() -> None:
         ),
         epilog=(
             "Canonical path: collect with a validated optional collector or import "
-            "a canonical trace -> analyze offline -> compare/report where the "
+            "a canonical trace -> validate -> analyze offline -> compare/report where the "
             "contract applies -> optionally bundle-create and bundle-verify."
         ),
     )
@@ -118,6 +124,17 @@ def main() -> None:
     collect.add_argument("--model", default=DEFAULT_MODEL)
     collect.add_argument("--revision")
     collect.add_argument("--max-new-tokens", type=int, default=0)
+    validate_trace = commands.add_parser(
+        "validate-trace",
+        help="strictly validate one canonical v1/v2 trace without analysis",
+    )
+    validate_trace.add_argument("trace", type=Path)
+    validate_trace.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_mode",
+        help="emit one deterministic machine-readable validation object",
+    )
     analyze = commands.add_parser(
         "analyze",
         help="analyze a strict canonical v1/v2 trace offline without ML dependencies",
@@ -132,7 +149,10 @@ def main() -> None:
     analyze.add_argument(
         "--preflight-config",
         type=Path,
-        help="run the established v1-only cache/transfer preflight pipeline",
+        help=(
+            "run compatible cache/transfer preflight: trace v1 with config v1/v2 "
+            "or trace v2 with stage-qualified config v3"
+        ),
     )
     analyze.add_argument(
         "--workload-id",
@@ -286,34 +306,67 @@ def main() -> None:
         except GraniteDependencyError as error:
             parser.error(str(error))
         print(write_trace(args.output, trace))
+    elif args.command == "validate-trace":
+        validation = validate_trace_file(args.trace)
+        if args.json_mode:
+            print(render_trace_validation_json(validation), end="")
+        elif validation.valid:
+            print(render_trace_validation_human(validation), end="")
+        else:
+            print(render_trace_validation_human(validation), end="", file=sys.stderr)
+        if not validation.valid:
+            raise SystemExit(2)
     elif args.command == "analyze":
         trace = read_versioned_trace(args.trace)
         if isinstance(trace, RoutingTraceV2):
             if args.preflight_config is not None:
-                parser.error(
-                    "--preflight-config uses v1 layer-qualified expert-size "
-                    "identities and is not stage-qualified for trace v2"
+                if args.top_k is not None:
+                    parser.error(
+                        "--top-k cannot be combined with trace v2 preflight analysis"
+                    )
+                from .preflight import run_stage_qualified_preflight_analysis
+                from .preflight_config import PreflightConfigV3, read_preflight_config
+                from .preflight_output import (
+                    render_stage_qualified_preflight_json,
+                    render_stage_qualified_preflight_report,
                 )
-            from .v2_analysis_output import (
-                analyze_v2_trace,
-                render_v2_analysis_json,
-                render_v2_analysis_report,
-            )
 
-            try:
-                result = analyze_v2_trace(
-                    trace,
-                    workload_id=args.workload_id,
-                    top_k=None if args.top_k is None else tuple(args.top_k),
+                config = read_preflight_config(args.preflight_config)
+                if not isinstance(config, PreflightConfigV3):
+                    parser.error(
+                        "routing trace v2 requires stage-qualified preflight config "
+                        "format_version 3"
+                    )
+                result = run_stage_qualified_preflight_analysis(
+                    trace, config, workload_id=args.workload_id
                 )
-            except (TypeError, ValueError) as error:
-                parser.error(str(error))
-            report = render_v2_analysis_report(result)
-            json_report = (
-                None
-                if args.json_output is None
-                else render_v2_analysis_json(result)
-            )
+                report = render_stage_qualified_preflight_report(result)
+                json_report = (
+                    None
+                    if args.json_output is None
+                    else render_stage_qualified_preflight_json(result)
+                )
+            else:
+                from .v2_analysis_output import (
+                    analyze_v2_trace,
+                    render_v2_analysis_json,
+                    render_v2_analysis_report,
+                )
+
+                try:
+                    result = analyze_v2_trace(
+                        trace,
+                        workload_id=args.workload_id,
+                        top_k=None if args.top_k is None else tuple(args.top_k),
+                    )
+                except (TypeError, ValueError) as error:
+                    parser.error(str(error))
+                report = render_v2_analysis_report(result)
+                json_report = (
+                    None
+                    if args.json_output is None
+                    else render_v2_analysis_json(result)
+                )
         elif args.top_k is not None:
             parser.error("--top-k is available only for trace v2 analysis")
         elif args.preflight_config is None:
@@ -329,12 +382,18 @@ def main() -> None:
             )
         else:
             from .preflight import run_preflight_analysis
-            from .preflight_config import read_preflight_config
+            from .preflight_config import PreflightConfigV3, read_preflight_config
             from .preflight_output import render_preflight_json, render_preflight_report
 
+            config = read_preflight_config(args.preflight_config)
+            if isinstance(config, PreflightConfigV3):
+                parser.error(
+                    "preflight config format_version 3 is stage-qualified and "
+                    "cannot be used with trace v1"
+                )
             result = run_preflight_analysis(
                 trace,
-                read_preflight_config(args.preflight_config),
+                config,
             )
             report = render_preflight_report(result)
             json_report = (
@@ -399,16 +458,19 @@ def main() -> None:
         print(write_report(args.output, render_report(trace, results)))
     elif args.command == "analyze-lifecycle":
         from .preflight import run_preflight_lifecycle_analysis
-        from .preflight_config import read_preflight_config
+        from .preflight_config import PreflightConfigV3, read_preflight_config
         from .preflight_output import (
             render_preflight_lifecycle_json,
             render_preflight_lifecycle_report,
         )
 
-        lifecycle_result = run_preflight_lifecycle_analysis(
-            args.manifest,
-            read_preflight_config(args.preflight_config),
-        )
+        config = read_preflight_config(args.preflight_config)
+        if isinstance(config, PreflightConfigV3):
+            parser.error(
+                "preflight config format_version 3 is stage-qualified and "
+                "cannot be used with v1 lifecycle analysis"
+            )
+        lifecycle_result = run_preflight_lifecycle_analysis(args.manifest, config)
         print(write_report(
             args.output,
             render_preflight_lifecycle_report(lifecycle_result),

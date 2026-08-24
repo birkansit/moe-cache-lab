@@ -1,16 +1,14 @@
-# V0.7 bounded runtime-validation feasibility gate
+# V0.7 bounded runtime-validation feasibility record
 
 Status: **GO for one later, separately reviewed test-only CPU physical-copy
-replay**. This note is the Issue #52 research/design result. It does not
+replay**. This historical research/design record does not
 implement or run that replay and does not establish cache residency, H2D
 transfer, latency, throughput, or speedup during model inference.
 
-## Scope and exact checkpoint
+## Scope and evidence reviewed
 
-- Private-development base inspected: `4f713cc34e7a4acf1e4ffa6c1c0787f99a29892f`.
-- Roadmap context: Issue #35, v0.7-B bounded validation.
-- Prior evidence inspected: completed Issues #48 and #50,
-  `V07_SWITCH_SMOKE.md`, `src/moe_cache_lab/byte_cache.py`,
+- Prior evidence inspected: `V07_SWITCH_SMOKE.md`,
+  `src/moe_cache_lab/byte_cache.py`,
   `src/moe_cache_lab/hardware_cost.py`,
   `src/moe_cache_lab/switch_collector.py`, `src/moe_cache_lab/evidence.py`,
   and their relevant tests.
@@ -41,8 +39,8 @@ test payload. It does **not** provide a bounded runtime weight cache: all
 registered expert parameters are ordinary model parameters and are already
 resident on the model's CPU device in the validated collector path.
 
-The completed Issue #48 smoke already established, without retaining the raw
-trace, the following bounded facts for pinned
+The earlier Switch smoke established, without retaining the raw trace, the
+following bounded facts for pinned
 `google/switch-base-8@92fe2d22b024d9937146fe097ba3d3a7ba146e1b`:
 
 - CPU float32, Transformers `5.12.0`, Torch `2.12.0+cpu`;
@@ -274,12 +272,12 @@ values to force agreement.
 
 ### Artifacts and cleanup
 
-Write an atomic private attempt directory containing the canonical trace,
+Write an atomic attempt directory containing the canonical trace,
 payload manifest, sealed prediction, runtime observation, comparison result,
 environment record, and SHA-256 manifest. Never commit model weights or copied
 payload tensors. Staging slots exist only in process memory and disappear when
-the executor exits. A later issue must decide whether the small trace/result
-artifacts are suitable for private Git; no public export is implied.
+the executor exits. Raw prompt/trace material must be treated as potentially
+sensitive when deciding whether any small result artifacts are retained.
 
 ## Evidence labels and prohibited conclusions
 
@@ -303,7 +301,7 @@ Even after a PASS, it remains forbidden to claim:
   replay; or
 - model quality or expert semantics.
 
-## Decision and next milestone
+## Decision
 
 **GO**: Candidate B, augmented by Candidate D's operator audit, meets the
 bounded gate. It can compare pre-frozen **SIMULATED** LRU miss/load-byte
@@ -314,6 +312,6 @@ Candidate A remains a native-runtime cache-validation NO-GO, and Candidate C
 remains an H2D transfer-service validation NO-GO on the current CPU-only Torch
 runtime. A production offload/swap engine is neither needed nor justified.
 
-The next separate milestone may implement and run only the frozen experiment
-above after design review. It must not start broader runtime engineering,
-scenario expansion, capacity tuning, GPU work, or later v0.7-B/C milestones.
+The GO decision was limited to implementing and running the frozen experiment
+above. It did not justify broader runtime engineering, scenario expansion,
+capacity tuning, GPU work, or production offload development.

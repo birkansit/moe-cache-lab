@@ -2,9 +2,11 @@
 
 This file preserves architectural decisions and rejected or deferred scope
 across earlier milestones. Its historical entries remain useful provenance.
-The current v0.7 user-facing capability and claim boundaries are defined by
-[`README.md`](README.md) and [`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md);
-historical statements here do not override that current contract.
+The current source capability and claim boundaries are defined by
+[`README.md`](README.md) and
+[`V08_RELEASE_NOTES.md`](V08_RELEASE_NOTES.md). Published v0.7 history remains
+in [`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md); historical statements here
+do not override the current source contract.
 
 ## Decisions
 

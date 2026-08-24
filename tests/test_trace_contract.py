@@ -12,6 +12,7 @@ from moe_cache_lab.trace import (
     read_trace,
     validate_trace_records,
 )
+from moe_cache_lab.trace_v2 import read_versioned_trace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -159,13 +160,18 @@ class CanonicalTraceContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "duplicate JSON object key: layer"):
                 read_trace(path)
 
-    def test_all_tracked_v06_traces_remain_compatible(self) -> None:
-        paths = sorted((ROOT / "examples").rglob("*.jsonl"))
+    def test_all_tracked_canonical_traces_remain_compatible(self) -> None:
+        invalid_fixtures = ROOT / "examples" / "trace-validation-fixtures" / "invalid"
+        paths = [
+            path
+            for path in sorted((ROOT / "examples").rglob("*.jsonl"))
+            if invalid_fixtures not in path.parents
+        ]
         paths.extend(sorted((ROOT / "results").rglob("*.jsonl")))
         self.assertGreater(len(paths), 1)
         for path in paths:
             with self.subTest(path=path.relative_to(ROOT)):
-                self.assertGreater(len(read_trace(path).events), 0)
+                self.assertGreater(len(read_versioned_trace(path).events), 0)
 
 
 if __name__ == "__main__":

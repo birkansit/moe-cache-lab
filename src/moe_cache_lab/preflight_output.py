@@ -10,11 +10,16 @@ from .analysis_output import analysis_summary_data
 from .byte_cache import ByteCacheLifecycleSimulation, ByteCacheSimulation
 from .hardware_cost import (
     LifecycleTransferEstimateRow,
+    StageQualifiedWorkloadByteContext,
     TransferCostEstimate,
     TransferSensitivitySweep,
     WorkloadByteContext,
 )
-from .preflight import PreflightAnalysisResult, PreflightLifecycleAnalysisResult
+from .preflight import (
+    PreflightAnalysisResult,
+    PreflightLifecycleAnalysisResult,
+    StageQualifiedPreflightAnalysisResult,
+)
 from .preflight_config import (
     PREFLIGHT_CONFIG_LEGACY_VERSION,
     PREFLIGHT_CONFIG_VERSION,
@@ -25,9 +30,12 @@ from .sensitivity_summary import (
     WorkloadIdentity,
     WorkloadMetricRange,
 )
+from .trace import TRACE_FORMAT
+from .trace_v2 import TRACE_VERSION_V2, RoutingExpertKeyV2
 
 PREFLIGHT_ANALYSIS_FORMAT = "moe-cache-lab.preflight-analysis"
 PREFLIGHT_ANALYSIS_VERSION = 2
+PREFLIGHT_ANALYSIS_STAGE_QUALIFIED_VERSION = 3
 PREFLIGHT_LIFECYCLE_FORMAT = "moe-cache-lab.preflight-cache-lifecycle-analysis"
 PREFLIGHT_LIFECYCLE_VERSION = 3
 
@@ -208,6 +216,250 @@ def render_preflight_json(result: PreflightAnalysisResult) -> str:
         indent=2,
         sort_keys=True,
     ) + "\n"
+
+
+def render_stage_qualified_preflight_report(
+    result: StageQualifiedPreflightAnalysisResult,
+) -> str:
+    """Render deterministic B4 Markdown without enabling public CLI dispatch."""
+
+    if not isinstance(result, StageQualifiedPreflightAnalysisResult):
+        raise TypeError(
+            "render_stage_qualified_preflight_report requires a "
+            "StageQualifiedPreflightAnalysisResult"
+        )
+    trace = result.engine.trace
+    config = result.engine.config
+    sweep = result.transfer_sensitivity
+    context = sweep.workload_context
+    workload = result.routing.evidence.workloads[0]
+    assigned = sum(phase.assigned_event_count or 0 for phase in workload.phases)
+    unassigned = sum(phase.unassigned_event_count or 0 for phase in workload.phases)
+    lines = [
+        "# MoE stage-qualified pre-flight analysis report",
+        "",
+        "## Scope / claim boundary",
+        "",
+        "- **ROUTING OBSERVATIONS:** trace-derived; treat them as **MEASURED** only when trace provenance establishes measurement.",
+        "- **SIMULATED:** cache hits, misses, demand-load bytes, evictions, and resident-byte values are offline cache-model outcomes.",
+        "- **ESTIMATED:** serialized transfer-service values apply caller-supplied bandwidth, setup-latency, and transfer-operation-plan assumptions to the existing simulated cache rows.",
+        "- **RUNTIME PERFORMANCE / RESIDENCY: NOT ESTABLISHED.**",
+        "- This report does not establish physical CPU/GPU residency; actual H2D or DRAM traffic; latency, throughput, tokens/sec, or speedup; compute/transfer overlap; an optimal policy or capacity; workload representativeness; or broad runtime compatibility.",
+        "",
+        "## Trace provenance and routing observations",
+        "",
+        f"- Trace contract: `{TRACE_FORMAT}` version {TRACE_VERSION_V2}",
+        f"- Model ID: `{trace.model_id}`",
+        f"- Model revision: `{_available_text(trace.model_revision)}`",
+        f"- Capture method: `{trace.capture_method}`",
+        f"- Trace created_at: `{_available_text(trace.created_at)}`",
+        f"- Transformers version: `{_available_text(trace.transformers_version)}`",
+        f"- Routing events: {workload.event_count}",
+        f"- Stage-qualified expert requests: {workload.expert_request_count}",
+        f"- Assigned events: {assigned}",
+        f"- Unassigned events: {unassigned}",
+        "",
+        "### Routing-stage profiles",
+        "",
+        "| routing stage | configured experts | assigned experts/token | allows unassigned |",
+        "| --- | ---: | ---: | --- |",
+    ]
+    for profile in trace.routing_stages:
+        lines.append(
+            f"| {profile.routing_stage} | {profile.num_experts} | "
+            f"{profile.assigned_experts_per_token} | "
+            f"{str(profile.allows_unassigned).lower()} |"
+        )
+
+    lines.extend([
+        "",
+        "### Stage/phase coverage",
+        "",
+        "| routing stage | phase | events | expert requests | assigned | unassigned |",
+        "| --- | --- | ---: | ---: | ---: | ---: |",
+    ])
+    for phase in workload.phases:
+        lines.append(
+            f"| {phase.routing_stage} | {phase.phase} | {phase.event_count} | "
+            f"{phase.expert_request_count} | {phase.assigned_event_count} | "
+            f"{phase.unassigned_event_count} |"
+        )
+
+    lines.extend([
+        "",
+        "## Caller-supplied stage-qualified assumptions",
+        "",
+        f"- Pre-flight config contract version: {config.format_version}",
+        "- Pre-flight config and pre-flight output versions are independent namespaces; equal numbers imply no compatibility relationship.",
+        f"- Cache capacities analyzed (bytes): {', '.join(str(value) for value in sweep.capacities_bytes)}",
+        f"- Policies: {', '.join(sweep.policies)}",
+        "",
+        "### Expert sizes",
+        "",
+    ])
+    if config.expert_sizes:
+        lines.extend([
+            "| routing stage | layer | expert | supplied size bytes |",
+            "| --- | ---: | ---: | ---: |",
+        ])
+        for item in config.expert_sizes:
+            lines.append(
+                f"| {item.routing_stage} | {item.layer_id} | "
+                f"{item.expert_id} | {item.size_bytes} |"
+            )
+    else:
+        lines.append("No expert-size assumptions were supplied.")
+
+    lines.extend([
+        "",
+        "## Stage-qualified workload byte context",
+        "",
+        "Only actual assigned requests contribute keys and bytes; unassigned events and extra unused size records do not.",
+        "",
+        f"- Unique referenced expert objects: {context.unique_referenced_expert_count}",
+        f"- Total supplied bytes for unique referenced experts: {context.unique_referenced_expert_bytes}",
+        f"- Maximum atomic event working-set bytes: {context.maximum_atomic_event_working_set_bytes}",
+        f"- Referenced expert keys: {_format_stage_qualified_keys(context.referenced_expert_keys)}",
+        "",
+        "## SIMULATED byte-cache sensitivity",
+        "",
+        "| capacity bytes | policy | events | requests | hits | misses | demand-load bytes | evictions | evicted bytes | peak resident bytes | final resident bytes | final resident keys |",
+        "| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+    ])
+    for simulation in result.engine.simulations:
+        lines.append(
+            f"| {simulation.capacity_bytes} | {simulation.policy} | "
+            f"{simulation.event_count} | {simulation.expert_request_count} | "
+            f"{simulation.hits} | {simulation.misses} | "
+            f"{simulation.simulated_demand_load_bytes} | "
+            f"{simulation.eviction_count} | {simulation.simulated_evicted_bytes} | "
+            f"{simulation.peak_resident_bytes} | "
+            f"{simulation.final_resident_bytes} | "
+            f"{_format_stage_qualified_keys(simulation.final_resident_keys)} |"
+        )
+
+    lines.extend([
+        "",
+        "## ESTIMATED serialized transfer-service sensitivity",
+        "",
+        "These rows reuse the exact SIMULATED cache cells above. They do not replay cache state.",
+        "",
+        "| capacity bytes | policy | hardware profile | transfer plan | logical loads | demand-load bytes | operations/load | modeled operations | bandwidth B/s | setup ns/operation | payload service s | setup service s | serialized service s |",
+        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ])
+    for row in sweep.rows:
+        estimate = row.estimate
+        lines.append(
+            f"| {estimate.cache_capacity_bytes} | {estimate.policy} | "
+            f"{estimate.hardware_profile_name} | "
+            f"{estimate.transfer_operation_plan_name} | "
+            f"{estimate.simulated_demand_load_count} | "
+            f"{estimate.simulated_demand_load_bytes} | "
+            f"{estimate.assumed_transfer_operations_per_logical_load} | "
+            f"{estimate.modeled_transfer_operation_count} | "
+            f"{estimate.assumed_h2d_payload_bandwidth_bytes_per_second} | "
+            f"{estimate.assumed_setup_latency_ns_per_transfer_operation} | "
+            f"{_format_fraction(estimate.estimated_payload_service_seconds)} | "
+            f"{_format_fraction(estimate.estimated_setup_service_seconds)} | "
+            f"{_format_fraction(estimate.estimated_serialized_transfer_service_seconds)} |"
+        )
+
+    lines.extend([
+        "",
+        "## Assumptions / limitations",
+        "",
+        "- Stage identity is exact `(routing_stage, layer, expert_id)`; encoder and decoder namespaces are never flattened or offset.",
+        "- The transfer model is serialized/no-overlap: simulated demand-load bytes / assumed bandwidth + modeled operation count × assumed setup latency.",
+        "- Simulated evictions drop immutable/read-only cache residency and are not charged as D2H writeback.",
+        "- The estimate excludes model compute, real compute/transfer overlap, runtime scheduling, allocator behavior, synchronization, D2H effects, and end-to-end runtime behavior.",
+        "- Lower simulated traffic or estimated service is not a policy, capacity, deployment, or performance recommendation.",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def render_stage_qualified_preflight_json(
+    result: StageQualifiedPreflightAnalysisResult,
+) -> str:
+    """Serialize deterministic stage-qualified pre-flight output version 3."""
+
+    return json.dumps(
+        stage_qualified_preflight_analysis_data(result),
+        ensure_ascii=False,
+        indent=2,
+        sort_keys=True,
+        allow_nan=False,
+    ) + "\n"
+
+
+def stage_qualified_preflight_analysis_data(
+    result: StageQualifiedPreflightAnalysisResult,
+) -> dict[str, Any]:
+    """Return the closed stage-qualified pre-flight output representation."""
+
+    if not isinstance(result, StageQualifiedPreflightAnalysisResult):
+        raise TypeError(
+            "stage_qualified_preflight_analysis_data requires a "
+            "StageQualifiedPreflightAnalysisResult"
+        )
+    trace = result.engine.trace
+    config = result.engine.config
+    sweep = result.transfer_sensitivity
+    return {
+        "format": PREFLIGHT_ANALYSIS_FORMAT,
+        "format_version": PREFLIGHT_ANALYSIS_STAGE_QUALIFIED_VERSION,
+        "trace_provenance": {
+            "format": TRACE_FORMAT,
+            "format_version": TRACE_VERSION_V2,
+            "model_id": trace.model_id,
+            "model_revision": trace.model_revision,
+            "capture_method": trace.capture_method,
+            "created_at": trace.created_at,
+            "transformers_version": trace.transformers_version,
+            "routing_stages": [
+                {
+                    "routing_stage": profile.routing_stage,
+                    "num_experts": profile.num_experts,
+                    "assigned_experts_per_token": (
+                        profile.assigned_experts_per_token
+                    ),
+                    "allows_unassigned": profile.allows_unassigned,
+                }
+                for profile in trace.routing_stages
+            ],
+        },
+        "config": preflight_config_data(config),
+        "routing_evidence": result.routing.evidence.to_dict(),
+        "workload_byte_context": _stage_qualified_workload_context_data(
+            sweep.workload_context
+        ),
+        "simulated_byte_cache_sensitivity": [
+            _stage_qualified_simulation_data(simulation)
+            for simulation in result.engine.simulations
+        ],
+        "estimated_transfer_service_sensitivity": [
+            _stage_qualified_estimate_data(row.estimate) for row in sweep.rows
+        ],
+        "claim_boundary": {
+            "routing_observations": (
+                "trace-derived; MEASURED only when provenance establishes "
+                "measurement"
+            ),
+            "cache_outcomes": "SIMULATED",
+            "transfer_service": "ESTIMATED",
+            "runtime_performance_and_residency": "NOT ESTABLISHED",
+            "config_and_output_version_namespaces_are_independent": True,
+            "does_not_establish": [
+                "physical_CPU_or_GPU_residency",
+                "actual_H2D_or_DRAM_traffic",
+                "latency_throughput_tokens_per_second_or_speedup",
+                "compute_transfer_overlap",
+                "optimal_policy_or_capacity",
+                "workload_representativeness",
+                "broad_runtime_compatibility",
+            ],
+        },
+    }
 
 
 def render_preflight_lifecycle_report(
@@ -582,6 +834,64 @@ def _simulation_data(simulation: ByteCacheSimulation) -> dict[str, Any]:
     }
 
 
+def _stage_qualified_simulation_data(
+    simulation: ByteCacheSimulation,
+) -> dict[str, Any]:
+    return {
+        "policy": simulation.policy,
+        "capacity_bytes": simulation.capacity_bytes,
+        "event_count": simulation.event_count,
+        "expert_request_count": simulation.expert_request_count,
+        "hits": simulation.hits,
+        "misses": simulation.misses,
+        "hit_rate": simulation.hit_rate,
+        "simulated_demand_load_bytes": simulation.simulated_demand_load_bytes,
+        "eviction_count": simulation.eviction_count,
+        "simulated_evicted_bytes": simulation.simulated_evicted_bytes,
+        "peak_resident_bytes": simulation.peak_resident_bytes,
+        "final_resident_bytes": simulation.final_resident_bytes,
+        "final_resident_keys": _stage_qualified_key_data(
+            simulation.final_resident_keys
+        ),
+    }
+
+
+def _stage_qualified_estimate_data(
+    estimate: TransferCostEstimate,
+) -> dict[str, Any]:
+    return {
+        "hardware_profile_name": estimate.hardware_profile_name,
+        "transfer_operation_plan_name": estimate.transfer_operation_plan_name,
+        "policy": estimate.policy,
+        "cache_capacity_bytes": estimate.cache_capacity_bytes,
+        "simulated_logical_demand_load_count": (
+            estimate.simulated_demand_load_count
+        ),
+        "simulated_demand_load_bytes": estimate.simulated_demand_load_bytes,
+        "modeled_transfer_operation_count": (
+            estimate.modeled_transfer_operation_count
+        ),
+        "assumed_transfer_operations_per_logical_load": (
+            estimate.assumed_transfer_operations_per_logical_load
+        ),
+        "assumed_h2d_payload_bandwidth_bytes_per_second": (
+            estimate.assumed_h2d_payload_bandwidth_bytes_per_second
+        ),
+        "assumed_setup_latency_ns_per_transfer_operation": (
+            estimate.assumed_setup_latency_ns_per_transfer_operation
+        ),
+        "estimated_payload_service_seconds": _fraction_data(
+            estimate.estimated_payload_service_seconds
+        ),
+        "estimated_setup_service_seconds": _fraction_data(
+            estimate.estimated_setup_service_seconds
+        ),
+        "estimated_serialized_transfer_service_seconds": _fraction_data(
+            estimate.estimated_serialized_transfer_service_seconds
+        ),
+    }
+
+
 def _estimate_data(
     estimate: TransferCostEstimate,
     output_version: int,
@@ -644,6 +954,36 @@ def _workload_context_data(context: WorkloadByteContext) -> dict[str, Any]:
             for layer_id, expert_id in context.referenced_expert_keys
         ],
     }
+
+
+def _stage_qualified_workload_context_data(
+    context: StageQualifiedWorkloadByteContext,
+) -> dict[str, Any]:
+    return {
+        "unique_referenced_expert_count": context.unique_referenced_expert_count,
+        "unique_referenced_expert_bytes": context.unique_referenced_expert_bytes,
+        "maximum_atomic_event_working_set_bytes": (
+            context.maximum_atomic_event_working_set_bytes
+        ),
+        "referenced_expert_keys": _stage_qualified_key_data(
+            context.referenced_expert_keys
+        ),
+    }
+
+
+def _stage_qualified_key_data(
+    keys: tuple[RoutingExpertKeyV2, ...],
+) -> list[dict[str, int | str]]:
+    return [
+        {
+            "routing_stage": routing_stage,
+            "layer_id": layer_id,
+            "expert_id": expert_id,
+        }
+        for routing_stage, layer_id, expert_id in sorted(
+            keys, key=_stage_qualified_key_sort_key
+        )
+    ]
 
 
 def _lifecycle_simulation_data(
@@ -911,6 +1251,30 @@ def _format_resident_keys(keys: tuple[tuple[int, int], ...] | None) -> str:
     if not keys:
         return "empty"
     return ", ".join(f"({layer_id}, {expert_id})" for layer_id, expert_id in keys)
+
+
+def _stage_qualified_key_sort_key(
+    key: RoutingExpertKeyV2,
+) -> tuple[int, int, int]:
+    routing_stage, layer_id, expert_id = key
+    return (0 if routing_stage == "encoder" else 1), layer_id, expert_id
+
+
+def _format_stage_qualified_keys(
+    keys: tuple[RoutingExpertKeyV2, ...],
+) -> str:
+    if not keys:
+        return "empty"
+    return ", ".join(
+        f"({routing_stage}, {layer_id}, {expert_id})"
+        for routing_stage, layer_id, expert_id in sorted(
+            keys, key=_stage_qualified_key_sort_key
+        )
+    )
+
+
+def _available_text(value: str | None) -> str:
+    return "unavailable" if value is None or value == "" else value
 
 
 def _phase_label(phase: str) -> str:
