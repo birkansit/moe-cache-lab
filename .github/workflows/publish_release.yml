@@ -1,0 +1,74 @@
+name: Publish GitHub release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.event.pull_request.head.ref == 'release/v0.8.0-publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ACCEPTED_SHA: e9fb09ec2bc3c39369958cd9aa9ecdc1f5c8cf25
+    steps:
+      - name: Check out accepted public source
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify exact accepted source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$ACCEPTED_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "0edc50f44a87bd95b7aa141a5d55a177ae2e7516"
+          test "$(python -c 'import pathlib, re; text=pathlib.Path("pyproject.toml").read_text(); print(re.search(r"^version = \"([^\"]+)\"", text, re.M).group(1))')" = "0.8.0"
+          if git ls-remote --exit-code --tags origin refs/tags/v0.8.0 >/dev/null 2>&1; then
+            echo 'v0.8.0 tag already exists' >&2
+            exit 1
+          fi
+          if gh release view v0.8.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'v0.8.0 release already exists' >&2
+            exit 1
+          fi
+
+      - name: Create exact v0.8.0 tag
+        run: |
+          set -euo pipefail
+          git config user.name "DutchVanDerLinde1710"
+          git config user.email "85397651+birkansit@users.noreply.github.com"
+          git tag -a v0.8.0 "$ACCEPTED_SHA" -m "moe-cache-lab v0.8.0"
+          git push origin refs/tags/v0.8.0
+
+      - name: Create GitHub release
+        run: |
+          cat > "$RUNNER_TEMP/release-notes.md" <<'EOF'
+          `moe-cache-lab` v0.8.0 advances the correctness-first, trace-driven MoE pre-flight toolchain.
+
+          Highlights include stage-qualified trace-v2 / pre-flight-config-v3 single-trace analysis, strict canonical `validate-trace` support, a packaged no-model external-producer workflow, explicit producer-conformance and compatibility contracts, and Python 3.10–3.12 lightweight core validation.
+
+          Evidence boundaries remain explicit: routing observations are MEASURED only when provenance establishes measurement; cache outcomes are SIMULATED; serialized transfer service is ESTIMATED. Physical CPU/GPU residency, real transfer behavior, runtime integration, latency, throughput, tokens/sec, speedup, memory savings, representative coverage, and optimal policy/capacity are not established by these workflows.
+
+          The external-runtime research gate remains a bounded SOURCE-READ NO-GO at the recorded boundary, not a universal rejection of vLLM or llama.cpp.
+
+          The base installation remains Torch-free. Optional Granite/Switch extras retain the reviewed PyTorch 2.12.0 and Transformers 5.12.0 pins. PyTorch 2.12.0 is affected by the GitHub-reviewed low-severity `GHSA-rrmf-rvhw-rf47` advisory in `torch.jit.script`; tracked supported `moe-cache-lab` code does not call that API or an equivalent indirect path. This bounded reachability finding is not a claim that PyTorch 2.12.0 is generally safe.
+
+          This project is not an inference accelerator and does not implement expert swapping/offloading or physical GPU residency management.
+          EOF
+          gh release create v0.8.0 \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "moe-cache-lab v0.8.0" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
+
+      - name: Verify published release targets accepted source
+        run: |
+          set -euo pipefail
+          test "$(git rev-list -n 1 v0.8.0)" = "$ACCEPTED_SHA"
+          gh release view v0.8.0 --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease --jq 'select(.tagName == "v0.8.0" and .isDraft == false and .isPrerelease == false)' >/dev/null
