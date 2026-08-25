@@ -15,9 +15,9 @@ class V07ReleaseCandidateTests(unittest.TestCase):
         notes = (ROOT / "V07_RELEASE_NOTES.md").read_text(encoding="utf-8")
         notes_normalized = " ".join(notes.split())
 
-        self.assertEqual(__version__, "0.8.0")
-        self.assertIn('version = "0.8.0"', pyproject)
-        self.assertIn("Current package version: **0.8.0**", readme)
+        self.assertEqual(__version__, "0.9.0")
+        self.assertIn('version = "0.9.0"', pyproject)
+        self.assertIn("Current package version: **0.9.0**", readme)
         self.assertIn("Current package version: **0.7.0**", notes)
         self.assertIn("V07_RELEASE_NOTES.md", readme)
 
@@ -103,9 +103,9 @@ class V07ReleaseCandidateTests(unittest.TestCase):
         )
         combined = ci + "\n" + audit
         for required in (
-            "moe_cache_lab-0.8.0-py3-none-any.whl",
-            "moe_cache_lab-0.8.0.tar.gz",
-            "--version 0.8.0",
+            "moe_cache_lab-0.9.0-py3-none-any.whl",
+            "moe_cache_lab-0.9.0.tar.gz",
+            "--version 0.9.0",
             "find_spec('torch') is None",
             "find_spec('transformers') is None",
             "load_trace_schema",

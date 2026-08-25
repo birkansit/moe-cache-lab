@@ -48,7 +48,7 @@ jobs:
         run: python scripts/audit_publication_hygiene.py
 
       - name: Exercise installed release core
-        run: python scripts/audit_core_workflow.py --source-root "$GITHUB_WORKSPACE" --expected-version 0.8.0
+        run: python scripts/audit_core_workflow.py --source-root "$GITHUB_WORKSPACE" --expected-version 0.9.0
 
       - name: Run focused portable core contracts
         run: |
@@ -131,8 +131,8 @@ jobs:
           set -o pipefail
           mkdir -p dist
           python -m build --sdist --wheel --outdir dist 2>&1 | tee dist/build.log
-          test -f dist/moe_cache_lab-0.8.0-py3-none-any.whl
-          test -f dist/moe_cache_lab-0.8.0.tar.gz
+          test -f dist/moe_cache_lab-0.9.0-py3-none-any.whl
+          test -f dist/moe_cache_lab-0.9.0.tar.gz
           if grep -Fq 'project.license' dist/build.log; then
             echo 'legacy project.license deprecation warning found in build log' >&2
             exit 1
@@ -142,15 +142,61 @@ jobs:
             exit 1
           fi
           python scripts/audit_distributions.py \
-            --version 0.8.0 \
-            --wheel dist/moe_cache_lab-0.8.0-py3-none-any.whl \
-            --sdist dist/moe_cache_lab-0.8.0.tar.gz
+            --version 0.9.0 \
+            --wheel dist/moe_cache_lab-0.9.0-py3-none-any.whl \
+            --sdist dist/moe_cache_lab-0.9.0.tar.gz
+
+      - name: Execute Bash onboarding golden path from installed wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          ONBOARDING_ROOT="$(mktemp -d)"
+          python -m venv "$ONBOARDING_ROOT/.venv"
+          source "$ONBOARDING_ROOT/.venv/bin/activate"
+          python -m pip install --no-deps "$GITHUB_WORKSPACE/dist/moe_cache_lab-0.9.0-py3-none-any.whl"
+          python -c "import importlib.util; assert importlib.util.find_spec('torch') is None; assert importlib.util.find_spec('transformers') is None"
+
+          PackagedExample="$VIRTUAL_ENV/share/moe-cache-lab/examples/external-producer-no-model"
+          test -d "$PackagedExample"
+          mkdir -p "$ONBOARDING_ROOT/work"
+          cp -R "$PackagedExample" "$ONBOARDING_ROOT/work/external-producer-no-model"
+          cd "$ONBOARDING_ROOT/work/external-producer-no-model"
+          mkdir -p artifacts
+
+          python producer.py --output artifacts/trace.jsonl
+          moe-cache-lab validate-trace artifacts/trace.jsonl
+          python -c "import pathlib,subprocess; data=subprocess.run(['moe-cache-lab','validate-trace','artifacts/trace.jsonl','--json'],check=True,stdout=subprocess.PIPE).stdout.replace(b'\r\n',b'\n'); pathlib.Path('artifacts/validation.json').write_bytes(data)"
+          moe-cache-lab analyze artifacts/trace.jsonl \
+            --workload-id external-producer-demo \
+            --output artifacts/routing-analysis.md \
+            --json-output artifacts/routing-analysis.json
+          moe-cache-lab capacity-frontier artifacts/trace.jsonl \
+            --preflight-config preflight-config.json \
+            --output artifacts/capacity-frontier.md \
+            --json-output artifacts/capacity-frontier.json
+          python -c "import json,pathlib; data=json.loads(pathlib.Path('artifacts/capacity-frontier.json').read_text()); assert data['format']=='moe-cache-lab.capacity-frontier'; assert data['format_version']==1; assert data['trace']['format_version']==2; assert data['byte_frontier'] is not None; assert 'SIMULATED' in data['claim_boundary']['cache']; assert 'Caller-supplied cache-model inputs' in data['claim_boundary']['byte_sizes']"
+          moe-cache-lab analyze artifacts/trace.jsonl \
+            --preflight-config preflight-config.json \
+            --workload-id external-producer-demo \
+            --output artifacts/preflight-report.md \
+            --json-output artifacts/preflight-report.json
+          sha256sum -c expected.sha256
+
+          moe-cache-lab bundle-create \
+            --experiment-id external-producer-no-model \
+            --config preflight-config.json \
+            --report-json artifacts/preflight-report.json \
+            --report-markdown artifacts/preflight-report.md \
+            --embed-trace synthetic-external artifacts/trace.jsonl \
+            --output-dir artifacts/bundle
+          moe-cache-lab bundle-verify artifacts/bundle
+          python -m pip check
 
       - name: Exercise fresh core-only installed wheel
         run: |
           AUDIT_DIR="$(mktemp -d)"
           CORE_VENV="$AUDIT_DIR/venv"
           python -m venv "$CORE_VENV"
-          "$CORE_VENV/bin/python" -m pip install --no-deps "$GITHUB_WORKSPACE/dist/moe_cache_lab-0.8.0-py3-none-any.whl"
-          "$CORE_VENV/bin/python" "$GITHUB_WORKSPACE/scripts/audit_core_workflow.py" --source-root "$GITHUB_WORKSPACE" --expected-version 0.8.0
+          "$CORE_VENV/bin/python" -m pip install --no-deps "$GITHUB_WORKSPACE/dist/moe_cache_lab-0.9.0-py3-none-any.whl"
+          "$CORE_VENV/bin/python" "$GITHUB_WORKSPACE/scripts/audit_core_workflow.py" --source-root "$GITHUB_WORKSPACE" --expected-version 0.9.0
           "$CORE_VENV/bin/python" -m pip check

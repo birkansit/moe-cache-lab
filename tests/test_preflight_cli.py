@@ -1,6 +1,6 @@
 import io
 import json
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +10,10 @@ from moe_cache_lab.analysis import analyze_routing
 from moe_cache_lab.analysis_output import render_analysis_report
 from moe_cache_lab.cli import main
 from moe_cache_lab.trace import RoutingEvent, RoutingTrace, write_trace
+
+
+ROOT = Path(__file__).resolve().parents[1]
+INVALID_TRACES = ROOT / "examples" / "trace-validation-fixtures" / "invalid"
 
 
 def _trace() -> RoutingTrace:
@@ -60,6 +64,88 @@ def _write_fixture(directory: Path, capacities: list[int] | None = None) -> tupl
 
 
 class PreflightCliTests(unittest.TestCase):
+    def test_expected_trace_input_failures_are_clean_and_leave_no_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            malformed_json = directory / "malformed.jsonl"
+            malformed_json.write_text("{not-json}\n", encoding="utf-8")
+            cases = (
+                INVALID_TRACES / "unknown-field.jsonl",
+                malformed_json,
+                directory / "missing.jsonl",
+            )
+            for index, trace_path in enumerate(cases):
+                with self.subTest(trace_path=trace_path):
+                    markdown = directory / f"trace-failure-{index}.md"
+                    json_output = directory / f"trace-failure-{index}.json"
+                    stdout = io.StringIO()
+                    stderr = io.StringIO()
+                    with patch(
+                        "sys.argv",
+                        [
+                            "moe-cache-lab",
+                            "analyze",
+                            str(trace_path),
+                            "--output",
+                            str(markdown),
+                            "--json-output",
+                            str(json_output),
+                        ],
+                    ), redirect_stdout(stdout), redirect_stderr(stderr), self.assertRaises(
+                        SystemExit
+                    ) as raised:
+                        main()
+
+                    self.assertEqual(raised.exception.code, 2)
+                    self.assertEqual(stdout.getvalue(), "")
+                    self.assertIn("trace input error:", stderr.getvalue())
+                    self.assertNotIn("Traceback", stderr.getvalue())
+                    self.assertFalse(markdown.exists())
+                    self.assertFalse(json_output.exists())
+
+    def test_malformed_config_is_clean_and_leaves_no_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            trace_path, config_path = _write_fixture(directory)
+            config_path.write_text("{not-json}\n", encoding="utf-8")
+            markdown = directory / "config-failure.md"
+            json_output = directory / "config-failure.json"
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with patch(
+                "sys.argv",
+                [
+                    "moe-cache-lab",
+                    "analyze",
+                    str(trace_path),
+                    "--preflight-config",
+                    str(config_path),
+                    "--output",
+                    str(markdown),
+                    "--json-output",
+                    str(json_output),
+                ],
+            ), redirect_stdout(stdout), redirect_stderr(stderr), self.assertRaises(
+                SystemExit
+            ) as raised:
+                main()
+
+            self.assertEqual(raised.exception.code, 2)
+            self.assertEqual(stdout.getvalue(), "")
+            self.assertIn("preflight config input error:", stderr.getvalue())
+            self.assertNotIn("Traceback", stderr.getvalue())
+            self.assertFalse(markdown.exists())
+            self.assertFalse(json_output.exists())
+
+    def test_unexpected_trace_reader_defect_is_not_suppressed(self) -> None:
+        with patch(
+            "sys.argv", ["moe-cache-lab", "analyze", "trace.jsonl"]
+        ), patch(
+            "moe_cache_lab.cli.read_versioned_trace",
+            side_effect=AssertionError("unexpected reader defect"),
+        ), self.assertRaisesRegex(AssertionError, "unexpected reader defect"):
+            main()
+
     def test_routing_only_analyze_remains_byte_compatible_without_config(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             trace_path, _ = _write_fixture(Path(temporary))
@@ -139,6 +225,7 @@ class PreflightCliTests(unittest.TestCase):
             payload = _config_payload()
             del payload["hardware_profiles"]
             config_path.write_text(json.dumps(payload), encoding="utf-8")
+            stderr = io.StringIO()
             with patch(
                 "sys.argv",
                 [
@@ -148,8 +235,11 @@ class PreflightCliTests(unittest.TestCase):
                     "--preflight-config",
                     str(config_path),
                 ],
-            ), self.assertRaisesRegex(ValueError, "missing required fields"):
+            ), redirect_stderr(stderr), self.assertRaises(SystemExit) as raised:
                 main()
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("missing required fields", stderr.getvalue())
+            self.assertNotIn("Traceback", stderr.getvalue())
 
             _, config_path = _write_fixture(directory, capacities=[5])
             with patch(

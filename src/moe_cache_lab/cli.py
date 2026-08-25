@@ -93,6 +93,20 @@ def _bundle_summary(result) -> str:
     )
 
 
+def _read_analyze_input(
+    parser: argparse.ArgumentParser,
+    path: Path,
+    reader,
+    *,
+    label: str,
+):
+    """Read one user-controlled analyze input through its strict reader."""
+    try:
+        return reader(path)
+    except (OSError, UnicodeError, ValueError) as error:
+        parser.error(f"{label}: {error}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="moe-cache-lab",
@@ -164,6 +178,32 @@ def main() -> None:
         type=int,
         nargs="+",
         help="explicit v2 locality ranks in caller order; no ranks are assumed",
+    )
+    capacity_frontier = commands.add_parser(
+        "capacity-frontier",
+        help=(
+            "derive the exact event-atomic LRU count frontier and optional "
+            "caller-sized byte frontier"
+        ),
+    )
+    capacity_frontier.add_argument("trace", type=Path)
+    capacity_frontier.add_argument(
+        "--preflight-config",
+        type=Path,
+        help=(
+            "derive the optional byte frontier from a compatible existing "
+            "preflight config"
+        ),
+    )
+    capacity_frontier.add_argument(
+        "--output",
+        type=Path,
+        help="write bounded deterministic Markdown instead of stdout",
+    )
+    capacity_frontier.add_argument(
+        "--json-output",
+        type=Path,
+        help="also write the complete deterministic machine frontier",
     )
     bundle_create = commands.add_parser(
         "bundle-create",
@@ -316,8 +356,61 @@ def main() -> None:
             print(render_trace_validation_human(validation), end="", file=sys.stderr)
         if not validation.valid:
             raise SystemExit(2)
+    elif args.command == "capacity-frontier":
+        from .capacity_frontier import (
+            CapacityFrontierInputError,
+            analyze_capacity_frontier,
+        )
+        from .capacity_frontier_output import (
+            render_capacity_frontier_json,
+            render_capacity_frontier_report,
+        )
+        from .preflight_config import PreflightConfigV3, read_preflight_config
+
+        trace = _read_analyze_input(
+            parser,
+            args.trace,
+            read_versioned_trace,
+            label="trace input error",
+        )
+        sizes = None
+        if args.preflight_config is not None:
+            config = _read_analyze_input(
+                parser,
+                args.preflight_config,
+                read_preflight_config,
+                label="preflight config input error",
+            )
+            if isinstance(trace, RoutingTraceV2):
+                if not isinstance(config, PreflightConfigV3):
+                    parser.error(
+                        "routing trace v2 requires stage-qualified preflight config "
+                        "format_version 3"
+                    )
+            elif isinstance(config, PreflightConfigV3):
+                parser.error(
+                    "preflight config format_version 3 is stage-qualified and "
+                    "cannot be used with trace v1"
+                )
+            sizes = config.expert_size_map()
+        try:
+            result = analyze_capacity_frontier(trace, sizes)
+        except CapacityFrontierInputError as error:
+            parser.error(str(error))
+        report = render_capacity_frontier_report(result)
+        if args.output is None:
+            print(report, end="")
+        else:
+            write_report(args.output, report)
+        if args.json_output is not None:
+            write_report(args.json_output, render_capacity_frontier_json(result))
     elif args.command == "analyze":
-        trace = read_versioned_trace(args.trace)
+        trace = _read_analyze_input(
+            parser,
+            args.trace,
+            read_versioned_trace,
+            label="trace input error",
+        )
         if isinstance(trace, RoutingTraceV2):
             if args.preflight_config is not None:
                 if args.top_k is not None:
@@ -331,7 +424,12 @@ def main() -> None:
                     render_stage_qualified_preflight_report,
                 )
 
-                config = read_preflight_config(args.preflight_config)
+                config = _read_analyze_input(
+                    parser,
+                    args.preflight_config,
+                    read_preflight_config,
+                    label="preflight config input error",
+                )
                 if not isinstance(config, PreflightConfigV3):
                     parser.error(
                         "routing trace v2 requires stage-qualified preflight config "
@@ -385,7 +483,12 @@ def main() -> None:
             from .preflight_config import PreflightConfigV3, read_preflight_config
             from .preflight_output import render_preflight_json, render_preflight_report
 
-            config = read_preflight_config(args.preflight_config)
+            config = _read_analyze_input(
+                parser,
+                args.preflight_config,
+                read_preflight_config,
+                label="preflight config input error",
+            )
             if isinstance(config, PreflightConfigV3):
                 parser.error(
                     "preflight config format_version 3 is stage-qualified and "

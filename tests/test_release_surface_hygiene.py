@@ -42,7 +42,7 @@ class ReleaseSurfaceHygieneTests(unittest.TestCase):
 
         self.assertNotIn("Release `0.4.0` pins", contributing)
         for required in (
-            "current package version is `0.8.0`",
+            "current package version is `0.9.0`",
             "base package requires neither PyTorch nor Transformers",
             "built-in public Granite collection CLI",
             "does not provide a public Switch collection CLI",
@@ -62,11 +62,11 @@ class ReleaseSurfaceHygieneTests(unittest.TestCase):
 
         self.assertNotIn("Release `0.4.0` is", brief)
         for required in (
-            "current package version is **0.8.0**",
+            "current package version is **0.9.0**",
             "[`README.md`](README.md)",
             "[`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md)",
             "[`V08_RELEASE_NOTES.md`](V08_RELEASE_NOTES.md)",
-            "## Current v0.8 contract",
+            "## Current compatibility and evidence contract",
             "## Historical progression: V0.1 through V0.4",
             "There is no public Switch collection CLI",
             "**MEASURED**",
@@ -91,7 +91,7 @@ class ReleaseSurfaceHygieneTests(unittest.TestCase):
     def test_release_docs_are_self_contained_and_version_neutral(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         walkthrough = (ROOT / "WALKTHROUGH.md").read_text(encoding="utf-8")
-        self.assertIn("Current package version: **0.8.0**", readme)
+        self.assertIn("Current package version: **0.9.0**", readme)
         self.assertIn("The repository and package include:", readme)
         self.assertIn("Release validation runs source compilation", readme)
         self.assertIn("The project does not provide:", readme)
@@ -224,8 +224,8 @@ class ReleaseSurfaceHygieneTests(unittest.TestCase):
             "include scripts/audit_publication_hygiene.py",
             (ROOT / "MANIFEST.in").read_text(encoding="utf-8"),
         )
-        self.assertEqual(__version__, "0.8.0")
-        self.assertIn('version = "0.8.0"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        self.assertEqual(__version__, "0.9.0")
+        self.assertIn('version = "0.9.0"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

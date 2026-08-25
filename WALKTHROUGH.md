@@ -25,11 +25,24 @@ canonical contract; it does not prove producer semantics or non-interference.
 
 From the repository root, create an environment and install the base package:
 
+PowerShell:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 ```
+
+Bash (Linux):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
+
+Where a command differs by shell below, the PowerShell block appears first and
+the Bash (Linux) equivalent second.
 
 Do not install the `granite` or `switch` extras for this walkthrough. The base
 package has no Torch or Transformers dependency, and none of the commands below
@@ -46,12 +59,25 @@ moe-cache-lab analyze examples\no-download-preflight\trace.jsonl `
   --json-output artifacts\preflight-report.json
 ```
 
+```bash
+moe-cache-lab analyze examples/no-download-preflight/trace.jsonl \
+  --preflight-config examples/no-download-preflight/preflight-config.json \
+  --output artifacts/preflight-report.md \
+  --json-output artifacts/preflight-report.json
+```
+
 Verify the exact bytes:
 
 ```powershell
 Get-FileHash -Algorithm SHA256 `
   artifacts\preflight-report.md, `
   artifacts\preflight-report.json
+```
+
+```bash
+sha256sum \
+  artifacts/preflight-report.md \
+  artifacts/preflight-report.json
 ```
 
 Expected SHA-256 values:
@@ -195,6 +221,18 @@ moe-cache-lab bundle-create `
 moe-cache-lab bundle-verify artifacts\no-download-preflight-bundle
 ```
 
+```bash
+moe-cache-lab bundle-create \
+  --experiment-id no-download-preflight \
+  --config examples/no-download-preflight/preflight-config.json \
+  --report-json artifacts/preflight-report.json \
+  --report-markdown artifacts/preflight-report.md \
+  --embed-trace synthetic examples/no-download-preflight/trace.jsonl \
+  --output-dir artifacts/no-download-preflight-bundle
+
+moe-cache-lab bundle-verify artifacts/no-download-preflight-bundle
+```
+
 The bundle records exact artifact hashes and sizes plus bounded tool,
 interpreter, platform, and explicitly supplied runtime provenance. Embedding a
 trace is deliberate: real traces may contain private prompt or generated text.
@@ -220,6 +258,12 @@ moe-cache-lab analyze TRACE_V2 `
   --top-k 1 2 4
 ```
 
+```bash
+moe-cache-lab analyze TRACE_V2 \
+  --workload-id evaluation-01 \
+  --top-k 1 2 4
+```
+
 Encoder and decoder experts retain `(routing_stage, layer)` identity; never
 flatten them or manufacture numerical layer offsets. `--top-k` is
 caller-explicit, preserves caller order, and has no hidden or recommended
@@ -236,6 +280,14 @@ moe-cache-lab analyze examples\no-download-stage-qualified-preflight\trace.jsonl
   --workload-id synthetic-stage-qualified-demo `
   --output artifacts\stage-qualified-preflight-report.md `
   --json-output artifacts\stage-qualified-preflight-report.json
+```
+
+```bash
+moe-cache-lab analyze examples/no-download-stage-qualified-preflight/trace.jsonl \
+  --preflight-config examples/no-download-stage-qualified-preflight/preflight-config.json \
+  --workload-id synthetic-stage-qualified-demo \
+  --output artifacts/stage-qualified-preflight-report.md \
+  --json-output artifacts/stage-qualified-preflight-report.json
 ```
 
 Its config assigns different sizes to `(encoder, 0, 1)` and

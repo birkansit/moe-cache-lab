@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "moe-cache-lab"
-version = "0.8.0"
+version = "0.9.0"
 description = "Trace-driven pre-flight analysis for MoE routing, expert caching, and offloading research."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -56,6 +56,7 @@ moe_cache_lab = ["schemas/*.json"]
   "V06_RELEASE_NOTES.md",
   "V07_RELEASE_NOTES.md",
   "V08_RELEASE_NOTES.md",
+  "V09_RELEASE_NOTES.md",
 ]
 "share/moe-cache-lab/examples/trace-validation-fixtures" = [
   "examples/trace-validation-fixtures/README.md",

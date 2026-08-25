@@ -1,6 +1,6 @@
 import io
 import json
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 import tempfile
 import unittest
@@ -170,10 +170,14 @@ class RoutingAnalysisOutputTests(unittest.TestCase):
             lines = trace_path.read_text(encoding="utf-8").splitlines()
             lines[1], lines[2] = lines[2], lines[1]
             trace_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+            stderr = io.StringIO()
             with patch(
                 "sys.argv", ["moe-cache-lab", "analyze", str(trace_path)]
-            ), self.assertRaisesRegex(ValueError, "layer-major collector order"):
+            ), redirect_stderr(stderr), self.assertRaises(SystemExit) as raised:
                 main()
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("layer-major collector order", stderr.getvalue())
+            self.assertNotIn("Traceback", stderr.getvalue())
 
 
 if __name__ == "__main__":

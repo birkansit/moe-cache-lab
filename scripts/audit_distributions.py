@@ -53,6 +53,8 @@ REQUIRED_PACKAGE_MODULES = (
     "moe_cache_lab/analysis_output.py",
     "moe_cache_lab/byte_cache.py",
     "moe_cache_lab/cache.py",
+    "moe_cache_lab/capacity_frontier.py",
+    "moe_cache_lab/capacity_frontier_output.py",
     "moe_cache_lab/cli.py",
     "moe_cache_lab/collector.py",
     "moe_cache_lab/cross_model_locality.py",
@@ -96,6 +98,7 @@ REQUIRED_RELEASE_DOCS = (
     "V06_RELEASE_NOTES.md",
     "V07_RELEASE_NOTES.md",
     "V08_RELEASE_NOTES.md",
+    "V09_RELEASE_NOTES.md",
 )
 REQUIRED_SDIST_PATHS = (
     "LICENSE",
@@ -112,6 +115,7 @@ REQUIRED_SDIST_PATHS = (
     "V06_RELEASE_NOTES.md",
     "V07_RELEASE_NOTES.md",
     "V08_RELEASE_NOTES.md",
+    "V09_RELEASE_NOTES.md",
     "examples/no-download-preflight/README.md",
     "examples/no-download-preflight/expected.sha256",
     "examples/no-download-preflight/preflight-config.json",
@@ -138,6 +142,8 @@ REQUIRED_SDIST_PATHS = (
     "src/moe_cache_lab/analysis_output.py",
     "src/moe_cache_lab/byte_cache.py",
     "src/moe_cache_lab/cache.py",
+    "src/moe_cache_lab/capacity_frontier.py",
+    "src/moe_cache_lab/capacity_frontier_output.py",
     "src/moe_cache_lab/cli.py",
     "src/moe_cache_lab/collector.py",
     "src/moe_cache_lab/cross_model_locality.py",
