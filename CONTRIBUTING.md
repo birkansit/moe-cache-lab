@@ -26,7 +26,7 @@ Contributions must preserve these boundaries:
 
 ## Environment
 
-The current package version is `0.8.0` and supports Python 3.10, 3.11, and
+The current package version is `0.9.0` and supports Python 3.10, 3.11, and
 3.12. The base package requires neither PyTorch nor Transformers.
 Model-specific collection dependencies are isolated behind optional extras:
 
@@ -38,9 +38,19 @@ Model-specific collection dependencies are isolated behind optional extras:
 
 Create a local virtual environment and install the project in editable mode:
 
+PowerShell:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+```
+
+Bash (Linux):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
 python -m pip install -e .
 ```
 
@@ -60,9 +70,17 @@ core/offline behavior do not need the optional ML dependencies.
 
 The full source-tree regression command is:
 
+PowerShell:
+
 ```powershell
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
+```
+
+Bash (Linux):
+
+```bash
+PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
 CI runs this command separately in the reviewed Python 3.10 ML/full-regression

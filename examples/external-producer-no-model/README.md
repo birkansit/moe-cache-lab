@@ -4,7 +4,8 @@ This example demonstrates the supported offline interoperability path:
 
 ```text
 SYNTHETIC external event source -> canonical trace v2 -> validate ->
-descriptive analyze -> stage-qualified pre-flight -> bundle create/verify
+descriptive analyze -> exact LRU capacity frontier -> stage-qualified
+pre-flight -> bundle create/verify
 ```
 
 The producer is an independent, standard-library-only script. It writes the
@@ -26,10 +27,12 @@ Create an isolated environment and install the base wheel. Replace the wheel
 path below with the locally built or supplied base distribution; no model extra
 is needed.
 
+PowerShell:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install .\dist\moe_cache_lab-0.8.0-py3-none-any.whl
+python -m pip install .\dist\moe_cache_lab-0.9.0-py3-none-any.whl
 
 $PackagedExample = Join-Path $env:VIRTUAL_ENV `
   "share\moe-cache-lab\examples\external-producer-no-model"
@@ -38,6 +41,22 @@ Set-Location .\external-producer-no-model
 New-Item -ItemType Directory -Force artifacts | Out-Null
 ```
 
+Bash (Linux):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install ./dist/moe_cache_lab-0.9.0-py3-none-any.whl
+
+PackagedExample="$VIRTUAL_ENV/share/moe-cache-lab/examples/external-producer-no-model"
+cp -R "$PackagedExample" ./external-producer-no-model
+cd ./external-producer-no-model
+mkdir -p artifacts
+```
+
+For each remaining shell-specific step, the PowerShell block appears first and
+the Bash (Linux) equivalent second.
+
 The commands below use the installed `moe-cache-lab` executable. The producer
 itself remains unrelated to package internals.
 
@@ -45,6 +64,10 @@ itself remains unrelated to package internals.
 
 ```powershell
 python producer.py --output artifacts\trace.jsonl
+```
+
+```bash
+python producer.py --output artifacts/trace.jsonl
 ```
 
 The trace has encoder and decoder stages. `(encoder, 0, 1)` and
@@ -62,6 +85,12 @@ moe-cache-lab validate-trace artifacts\trace.jsonl
 python -c "import pathlib,subprocess; data=subprocess.run(['moe-cache-lab','validate-trace','artifacts/trace.jsonl','--json'],check=True,stdout=subprocess.PIPE).stdout.replace(b'\r\n',b'\n'); pathlib.Path('artifacts/validation.json').write_bytes(data)"
 ```
 
+```bash
+moe-cache-lab validate-trace artifacts/trace.jsonl
+
+python -c "import pathlib,subprocess; data=subprocess.run(['moe-cache-lab','validate-trace','artifacts/trace.jsonl','--json'],check=True,stdout=subprocess.PIPE).stdout.replace(b'\r\n',b'\n'); pathlib.Path('artifacts/validation.json').write_bytes(data)"
+```
+
 Both modes must report a valid trace-v2 file. This result does not validate a
 real producer's observation boundary, native chronology mapping, or
 non-interference.
@@ -75,10 +104,41 @@ moe-cache-lab analyze artifacts\trace.jsonl `
   --json-output artifacts\routing-analysis.json
 ```
 
+```bash
+moe-cache-lab analyze artifacts/trace.jsonl \
+  --workload-id external-producer-demo \
+  --output artifacts/routing-analysis.md \
+  --json-output artifacts/routing-analysis.json
+```
+
 This command describes the supplied synthetic routing events. It performs no
 cache simulation or transfer estimation and does not rank experts or settings.
 
-### 4. Run compatible stage-qualified pre-flight
+### 4. Derive exact event-atomic LRU capacity frontiers
+
+```powershell
+moe-cache-lab capacity-frontier artifacts\trace.jsonl `
+  --preflight-config preflight-config.json `
+  --output artifacts\capacity-frontier.md `
+  --json-output artifacts\capacity-frontier.json
+```
+
+```bash
+moe-cache-lab capacity-frontier artifacts/trace.jsonl \
+  --preflight-config preflight-config.json \
+  --output artifacts/capacity-frontier.md \
+  --json-output artifacts/capacity-frontier.json
+```
+
+The bounded Markdown summarizes the count and caller-sized byte frontiers; the
+deterministic JSON contains every exact hit-changing breakpoint. Fixed
+25%/50%/75%/90% rows are descriptive checkpoints, including explicit
+unattainable results, not recommendations or SLAs. Exactness is within the
+**SIMULATED** event-atomic LRU abstraction. The fictional `size_bytes` values
+are caller-supplied cache-model inputs, not measured physical expert sizes,
+residency, transfers, latency, throughput, or speedup.
+
+### 5. Run compatible stage-qualified pre-flight
 
 ```powershell
 moe-cache-lab analyze artifacts\trace.jsonl `
@@ -88,13 +148,21 @@ moe-cache-lab analyze artifacts\trace.jsonl `
   --json-output artifacts\preflight-report.json
 ```
 
+```bash
+moe-cache-lab analyze artifacts/trace.jsonl \
+  --preflight-config preflight-config.json \
+  --workload-id external-producer-demo \
+  --output artifacts/preflight-report.md \
+  --json-output artifacts/preflight-report.json
+```
+
 The config assigns 3 bytes to `(encoder, 0, 1)` and 5 bytes to
 `(decoder, 0, 1)`. It tests capacities 5 and 9 with the existing LRU/LFU
 simulator and a fictional serialized transfer profile. Different results
 between tested cells are descriptive **SIMULATED**/**ESTIMATED** outcomes, not
 an optimum, recommendation, or performance prediction.
 
-### 5. Check deterministic artifact bytes
+### 6. Check deterministic artifact bytes
 
 ```powershell
 Get-FileHash -Algorithm SHA256 `
@@ -107,10 +175,14 @@ Get-FileHash -Algorithm SHA256 `
 Get-Content expected.sha256
 ```
 
+```bash
+sha256sum -c expected.sha256
+```
+
 The values must match `expected.sha256`. Matching proves byte reproduction of
 these synthetic artifacts only; it does not upgrade their evidence meaning.
 
-### 6. Create and verify an integrity bundle
+### 7. Create and verify an integrity bundle
 
 ```powershell
 moe-cache-lab bundle-create `
@@ -122,6 +194,18 @@ moe-cache-lab bundle-create `
   --output-dir artifacts\bundle
 
 moe-cache-lab bundle-verify artifacts\bundle
+```
+
+```bash
+moe-cache-lab bundle-create \
+  --experiment-id external-producer-no-model \
+  --config preflight-config.json \
+  --report-json artifacts/preflight-report.json \
+  --report-markdown artifacts/preflight-report.md \
+  --embed-trace synthetic-external artifacts/trace.jsonl \
+  --output-dir artifacts/bundle
+
+moe-cache-lab bundle-verify artifacts/bundle
 ```
 
 The verifier checks the exact embedded artifacts without fetching or repairing

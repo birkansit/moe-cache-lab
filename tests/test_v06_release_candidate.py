@@ -24,8 +24,8 @@ class V06ReleaseTests(unittest.TestCase):
     def test_version_release_notes_and_lifecycle_schema_are_consistent(self) -> None:
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         notes = (ROOT / "V06_RELEASE_NOTES.md").read_text(encoding="utf-8")
-        self.assertEqual(__version__, "0.8.0")
-        self.assertIn('version = "0.8.0"', pyproject)
+        self.assertEqual(__version__, "0.9.0")
+        self.assertIn('version = "0.9.0"', pyproject)
         self.assertIn("Current package version: **0.6.0**", notes)
         self.assertEqual(PREFLIGHT_LIFECYCLE_VERSION, 3)
 
@@ -91,8 +91,8 @@ class V06ReleaseTests(unittest.TestCase):
         self.assertIn("include V06_RELEASE_NOTES.md", manifest)
         self.assertIn("schemas *.json", manifest)
         self.assertIn("scripts/audit_distributions.py", manifest)
-        self.assertIn("moe_cache_lab-0.8.0-py3-none-any.whl", ci)
-        self.assertIn("moe_cache_lab-0.8.0.tar.gz", ci)
+        self.assertIn("moe_cache_lab-0.9.0-py3-none-any.whl", ci)
+        self.assertIn("moe_cache_lab-0.9.0.tar.gz", ci)
         self.assertIn("scripts/audit_distributions.py", ci)
 
     def test_v06_release_facing_files_have_no_private_process_or_identity_leakage(self) -> None:

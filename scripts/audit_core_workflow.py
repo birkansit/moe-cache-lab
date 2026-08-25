@@ -15,7 +15,7 @@ import sysconfig
 import tempfile
 
 
-EXPECTED_VERSION = "0.8.0"
+EXPECTED_VERSION = "0.9.0"
 REQUIRED_DOCS = (
     "README.md",
     "COMPATIBILITY.md",
@@ -28,6 +28,7 @@ REQUIRED_DOCS = (
     "V06_RELEASE_NOTES.md",
     "V07_RELEASE_NOTES.md",
     "V08_RELEASE_NOTES.md",
+    "V09_RELEASE_NOTES.md",
     "WALKTHROUGH.md",
 )
 
@@ -181,6 +182,17 @@ def audit(source_root: Path, expected_version: str) -> None:
             cwd=root,
         )
         _verify_hashes(root, v1_example / "expected.sha256")
+        _cli(
+            [
+                "capacity-frontier",
+                str(v1_example / "trace.jsonl"),
+                "--output",
+                "v1-capacity-frontier.md",
+                "--json-output",
+                "v1-capacity-frontier.json",
+            ],
+            cwd=root,
+        )
 
         v2_example = source_root / "examples" / "no-download-stage-qualified-preflight"
         _cli(
@@ -226,6 +238,19 @@ def audit(source_root: Path, expected_version: str) -> None:
                 "artifacts/routing-analysis.md",
                 "--json-output",
                 "artifacts/routing-analysis.json",
+            ],
+            cwd=workflow,
+        )
+        _cli(
+            [
+                "capacity-frontier",
+                "artifacts/trace.jsonl",
+                "--preflight-config",
+                "preflight-config.json",
+                "--output",
+                "artifacts/capacity-frontier.md",
+                "--json-output",
+                "artifacts/capacity-frontier.json",
             ],
             cwd=workflow,
         )
@@ -294,7 +319,40 @@ def audit(source_root: Path, expected_version: str) -> None:
         preflight_data = json.loads(
             (artifacts / "preflight-report.json").read_text(encoding="utf-8")
         )
+        v1_frontier_data = json.loads(
+            (root / "v1-capacity-frontier.json").read_text(encoding="utf-8")
+        )
+        v2_frontier_data = json.loads(
+            (artifacts / "capacity-frontier.json").read_text(encoding="utf-8")
+        )
         _require(validation_data["trace_format_version"] == 2, "C7 trace is not v2")
+        _require(
+            v1_frontier_data["format"] == "moe-cache-lab.capacity-frontier"
+            and v1_frontier_data["format_version"] == 1
+            and v1_frontier_data["trace"]["format_version"] == 1
+            and v1_frontier_data["byte_frontier"] is None,
+            "installed v1 count-only capacity-frontier boundary changed",
+        )
+        _require(
+            "SIMULATED" in v1_frontier_data["claim_boundary"]["cache"],
+            "v1 capacity-frontier cache evidence boundary changed",
+        )
+        _require(
+            v2_frontier_data["format"] == "moe-cache-lab.capacity-frontier"
+            and v2_frontier_data["format_version"] == 1
+            and v2_frontier_data["trace"]["format_version"] == 2
+            and v2_frontier_data["byte_frontier"] is not None,
+            "installed capacity-frontier lost v2/caller-sized byte support",
+        )
+        _require(
+            "SIMULATED" in v2_frontier_data["claim_boundary"]["cache"],
+            "v2 capacity-frontier cache evidence boundary changed",
+        )
+        _require(
+            "Caller-supplied cache-model inputs"
+            in v2_frontier_data["claim_boundary"]["byte_sizes"],
+            "v2 capacity-frontier byte-size assumption boundary changed",
+        )
         _require(
             preflight_data["claim_boundary"]["cache_outcomes"] == "SIMULATED",
             "C7 cache evidence boundary changed",

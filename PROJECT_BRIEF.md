@@ -3,7 +3,7 @@
 ## Purpose
 
 `moe-cache-lab` is a correctness-first, trace-driven MoE pre-flight and
-evidence-analysis toolkit. The current package version is **0.8.0**. It is
+evidence-analysis toolkit. The current package version is **0.9.0**. It is
 research and decision-support tooling, not an inference accelerator.
 
 [`README.md`](README.md) defines the current source capability and claim
@@ -11,7 +11,7 @@ boundary. [`V07_RELEASE_NOTES.md`](V07_RELEASE_NOTES.md) preserves the v0.7
 package scope; [`V08_RELEASE_NOTES.md`](V08_RELEASE_NOTES.md) defines the v0.8
 release scope and limitations.
 
-## Current v0.8 contract
+## Current compatibility and evidence contract
 
 - Canonical routing trace v1 and v2 coexist. V1 preserves layer-qualified
   `(layer, expert_id)` identity and its established pre-flight behavior.

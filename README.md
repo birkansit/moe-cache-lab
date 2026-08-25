@@ -1,89 +1,34 @@
 # moe-cache-lab
 
-**Trace-driven pre-flight analysis for MoE routing, expert caching, and offloading research.**
+`moe-cache-lab` is a correctness-first, trace-driven MoE pre-flight analysis toolkit.
+It validates canonical routing traces, describes their routing
+evidence, simulates explicit cache scenarios where the trace/config contract
+supports them, estimates serialized transfer service under caller assumptions,
+and can package supplied artifacts in a deterministic integrity bundle.
 
-`moe-cache-lab` is a correctness-first, **trace-driven MoE pre-flight analysis toolkit**
-and offline research tool that sits between **routing observation** and **runtime
-offloading engineering**. Give it a canonical MoE routing trace and it can
-describe routing evidence, replay compatible traces through explicit byte-cache
-simulations, estimate serialized transfer service under caller-supplied
-assumptions, and package artifacts for reproducibility.
-
-It is designed to answer a bounded question before deeper runtime work:
-
-> **What does the observed routing trace establish about locality and simulated
-> cache behavior, and what does it still leave unmeasured?**
-
-Current package version: **0.8.0**. Historical v0.2/v0.3/v0.4 evidence remains
+Current package version: **0.9.0**. Historical v0.2/v0.3/v0.4 evidence remains
 preserved with its original interpretation and hashes.
 
-| | |
-| --- | --- |
-| **Input** | A canonical, versioned MoE routing trace from a supported collector or another conforming producer |
-| **Output** | Routing evidence, compatible byte-cache simulations, transfer-sensitivity estimates, and deterministic reports/bundles |
-| **Base install** | Python 3.10+; offline trace validation and analysis do not require PyTorch or Transformers |
-| **Current release** | `0.8.0` |
+External producers can target the strict canonical versioned JSONL contract in
+[`TRACE_FORMAT.md`](TRACE_FORMAT.md). Version 1 preserves layer-qualified
+decoder-only routing. Version 2 preserves encoder/decoder stage-qualified
+routing and explicit capacity-unassigned events. Invalid chronology is rejected
+without sorting or repair. The v2 path was structurally and observationally
+validated for one pinned SwitchTransformers family/path; this is not broad
+Transformers or MoE-family compatibility. Cross-format versioning and supported
+trace/config combinations are defined in
+[`COMPATIBILITY.md`](COMPATIBILITY.md); package, trace, and pre-flight-config
+version numbers are independent namespaces. External producer validity,
+semantic validation, and non-interference requirements are kept separate in
+[`PRODUCER_CONFORMANCE.md`](PRODUCER_CONFORMANCE.md).
 
-```text
-model / runtime / producer
-|
-v
-canonical routing trace
-|
-v
-strict read + validation
-|
-v
-   routing analysis
-|
-+----------------------+
-|                      |
-v                      v
-compatible pre-flight       reproducibility
-cache / transfer model          bundle
-```
+The base installation validates, imports, and analyzes canonical v1/v2 traces without
+PyTorch or Transformers. Model collection is optional and model-specific. The
+built-in public collector remains Granite/Transformers-specific: the `collect`
+compatibility command is the validated Granite path. Any other producer may
+supply a canonical trace that passes the strict reader.
 
-The canonical JSONL trace is the interoperability boundary. Invalid chronology
-is rejected rather than sorted or repaired, and encoder/decoder identity is not
-flattened. Routing-trace and pre-flight-config version numbers are independent;
-the supported combinations are defined in [`COMPATIBILITY.md`](COMPATIBILITY.md).
-External producer validity, semantic mapping, and non-interference are separate
-claims governed by [`PRODUCER_CONFORMANCE.md`](PRODUCER_CONFORMANCE.md).
-
-The base installation validates, imports, and analyzes canonical v1/v2 traces
-without PyTorch or Transformers. Model collection is optional and model-specific.
-The built-in public collector remains Granite/Transformers-specific.
-
-> **This project is not an inference accelerator.** It does not implement expert
-> swapping/offloading or physical GPU residency management. It observes and
-> analyzes routing, simulates cache behavior, and estimates a simple serialized
-> transfer-service cost under explicit assumptions.
-
-## One bounded result, shown without a performance claim
-
-A tracked V0.7 observational smoke used the pinned
-`google/switch-base-8` revision
-`92fe2d22b024d9937146fe097ba3d3a7ba146e1b` on CPU. Native post-capacity routing
-was observed without modifying routing decisions. One version-aware LRU replay
-then applied an eight-expert byte capacity to that trace.
-
-| Quantity | Result | Evidence class |
-| --- | ---: | --- |
-| Routing events | 156 assigned / 0 unassigned | **MEASURED routing observation** |
-| Stage-qualified expert objects | 96 | model/trace structure |
-| Parameter payload per expert | 18,874,368 bytes | parameter payload accounting; **not physical residency** |
-| LRU cache capacity | 150,994,944 bytes | caller-selected simulation input |
-| Cache hits / misses | 89 / 67 | **SIMULATED** |
-| Evictions | 59 | **SIMULATED** |
-| Demand-load bytes | 1,264,582,656 | **SIMULATED cache-model accounting** |
-| Peak/final resident bytes | 150,994,944 | **SIMULATED cache-model accounting** |
-
-This example demonstrates that one real stage-qualified Switch routing trace can
-enter the portable offline cache model without encoder/decoder aliasing. It does
-**not** establish physical GPU residency, real H2D traffic, end-to-end latency,
-throughput, tokens/sec, speedup, policy optimality, or workload
-representativeness. See [`V07_SWITCH_SMOKE.md`](V07_SWITCH_SMOKE.md) for the full
-provenance and limitations.
+> **Important:** this project is not an inference accelerator. It does not implement expert swapping/offloading or physical GPU residency management. It observes/analyzes routing, simulates cache behavior, and estimates a simple serialized transfer-service cost under explicit assumptions.
 
 ## Canonical current-use path
 
@@ -91,6 +36,7 @@ provenance and limitations.
 produce/import canonical JSONL
     -> validate the canonical v1/v2 file offline
     -> analyze descriptive routing evidence offline
+    -> derive an exact event-atomic LRU capacity frontier
     -> run pre-flight only for a compatible trace/config pair
     -> create and verify a reproducibility bundle
 ```
@@ -138,13 +84,15 @@ selects only some of them for each token. `moe-cache-lab` can:
 1. strictly read canonical routing trace v1/v2 without repairing chronology;
 2. validate canonical traces with deterministic human or JSON output;
 3. analyze v1 routing or v2 stage-qualified evidence offline;
-4. replay compatible traces through byte-capacity LRU/LFU simulations;
-5. compare explicit cold and persistent lifecycle scenarios for supported v1
+4. derive an exact event-atomic LRU count-capacity frontier, with an optional
+   caller-sized byte frontier from a compatible existing pre-flight config;
+5. replay compatible traces through byte-capacity LRU/LFU simulations;
+6. compare explicit cold and persistent lifecycle scenarios for supported v1
    pre-flight inputs;
-6. estimate serialized transfer service from explicit assumptions;
-7. create/verify deterministic experiment-integrity bundles with embedded or
+7. estimate serialized transfer service from explicit assumptions;
+8. create/verify deterministic experiment-integrity bundles with embedded or
    metadata-only external trace references;
-8. retain historical benchmark/evidence workflows for reproduction.
+9. retain historical benchmark/evidence workflows for reproduction.
 
 A simulated or estimated pre-flight result is not a measured speedup, measured
 GPU transfer result, end-to-end latency result, throughput result, tokens/sec
@@ -163,6 +111,8 @@ The repository and package include:
 - per-layer and phase-layer frequency concentration metrics;
 - version-aware byte-capacity LRU/LFU simulation for canonical v1 and v2,
   preserving layer-qualified v1 and stage-qualified v2 identities;
+- exact event-atomic LRU count-capacity frontiers and optional heterogeneous
+  byte-capacity frontiers under compatible caller-supplied expert sizes;
 - exact serialized transfer-cost sensitivity under explicit bandwidth, setup-latency, and transfer-operation assumptions;
 - explicit cold-per-workload and persistent-sequence lifecycle simulation;
 - deterministic capacity, policy, and workload sensitivity summaries;
@@ -206,11 +156,24 @@ Base offline-analysis requirements:
 Create an environment and install the base package from this checkout. This
 path needs neither PyTorch nor Transformers:
 
+PowerShell:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e .
 ```
+
+Bash (Linux):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
+
+Where a command differs by shell below, the PowerShell block appears first and
+the Bash (Linux) equivalent second.
 
 ### 1. Obtain or import a canonical trace
 
@@ -253,6 +216,11 @@ moe-cache-lab validate-trace artifacts\routing-trace.jsonl
 moe-cache-lab validate-trace artifacts\routing-trace.jsonl --json
 ```
 
+```bash
+moe-cache-lab validate-trace artifacts/routing-trace.jsonl
+moe-cache-lab validate-trace artifacts/routing-trace.jsonl --json
+```
+
 The official synthetic valid/invalid corpus is documented in
 [`examples/trace-validation-fixtures/README.md`](examples/trace-validation-fixtures/README.md).
 Passing validation proves canonical-file validity only; it does not prove that
@@ -264,6 +232,10 @@ the producer observed the correct native boundary or was non-interfering.
 
 ```powershell
 moe-cache-lab analyze artifacts\routing-trace.jsonl
+```
+
+```bash
+moe-cache-lab analyze artifacts/routing-trace.jsonl
 ```
 
 - v1 preserves the established routing-only Markdown/JSON behavior.
@@ -279,12 +251,47 @@ moe-cache-lab analyze artifacts\switch-trace-v2.jsonl `
   --json-output artifacts\routing-evidence.json
 ```
 
+```bash
+moe-cache-lab analyze artifacts/switch-trace-v2.jsonl \
+  --workload-id evaluation-01 \
+  --top-k 2 1 4 \
+  --output artifacts/routing-evidence.md \
+  --json-output artifacts/routing-evidence.json
+```
+
 For v2 pre-flight, pair the trace with strict config v3 so expert sizes remain
 stage-qualified. Config v1/v2 remains v1-only; incompatible pairs fail
 explicitly instead of flattening encoder/decoder identity. `--top-k` is not
 combined with v2 pre-flight analysis.
 
-### 4. Compare/report where a pre-flight contract applies
+### 4. Derive the exact event-atomic LRU capacity frontier
+
+The count frontier needs only a valid canonical trace. The optional byte
+frontier reuses an existing compatible pre-flight config's caller-supplied
+expert sizes:
+
+```powershell
+moe-cache-lab capacity-frontier artifacts\routing-trace.jsonl `
+  --preflight-config preflight-config.json `
+  --output artifacts\capacity-frontier.md `
+  --json-output artifacts\capacity-frontier.json
+```
+
+```bash
+moe-cache-lab capacity-frontier artifacts/routing-trace.jsonl \
+  --preflight-config preflight-config.json \
+  --output artifacts/capacity-frontier.md \
+  --json-output artifacts/capacity-frontier.json
+```
+
+Omit `--preflight-config` for count capacity only. The Markdown is a bounded
+summary; deterministic JSON contains every exact hit-changing breakpoint and
+the fixed descriptive 25%/50%/75%/90% checkpoints. The command derives exact
+results under the **SIMULATED** event-atomic LRU abstraction. It neither sweeps
+capacities nor recommends one. Supplied byte sizes are cache-model inputs, not
+physical-size, residency, transfer, or performance measurements.
+
+### 5. Compare/report where a pre-flight contract applies
 
 The tracked no-download fixture is synthetic and uses fictional hardware
 assumptions:
@@ -294,6 +301,13 @@ moe-cache-lab analyze examples\no-download-preflight\trace.jsonl `
   --preflight-config examples\no-download-preflight\preflight-config.json `
   --output artifacts\preflight-report.md `
   --json-output artifacts\preflight-report.json
+```
+
+```bash
+moe-cache-lab analyze examples/no-download-preflight/trace.jsonl \
+  --preflight-config examples/no-download-preflight/preflight-config.json \
+  --output artifacts/preflight-report.md \
+  --json-output artifacts/preflight-report.json
 ```
 
 See [`PREFLIGHT.md`](PREFLIGHT.md) and [`examples/no-download-preflight/README.md`](examples/no-download-preflight/README.md).
@@ -307,6 +321,14 @@ moe-cache-lab analyze examples\no-download-stage-qualified-preflight\trace.jsonl
   --workload-id synthetic-stage-qualified-demo `
   --output artifacts\stage-qualified-preflight-report.md `
   --json-output artifacts\stage-qualified-preflight-report.json
+```
+
+```bash
+moe-cache-lab analyze examples/no-download-stage-qualified-preflight/trace.jsonl \
+  --preflight-config examples/no-download-stage-qualified-preflight/preflight-config.json \
+  --workload-id synthetic-stage-qualified-demo \
+  --output artifacts/stage-qualified-preflight-report.md \
+  --json-output artifacts/stage-qualified-preflight-report.json
 ```
 
 See
@@ -325,7 +347,7 @@ moe-cache-lab analyze-lifecycle artifacts\corpus\manifest-v1.json `
 These rows remain **SIMULATED** cache outcomes and **ESTIMATED** serialized
 transfer-service results. They do not establish physical movement or speedup.
 
-### 5. Create and verify a reproducibility bundle
+### 6. Create and verify a reproducibility bundle
 
 Bundle supplied config/report bytes and explicitly selected trace references:
 
@@ -340,6 +362,19 @@ moe-cache-lab bundle-create `
   --output-dir artifacts\evaluation-01-bundle
 
 moe-cache-lab bundle-verify artifacts\evaluation-01-bundle
+```
+
+```bash
+moe-cache-lab bundle-create \
+  --experiment-id evaluation-01 \
+  --config artifacts/experiment-config.json \
+  --report-json artifacts/routing-evidence.json \
+  --report-markdown artifacts/routing-evidence.md \
+  --embed-trace routing artifacts/routing-trace.jsonl \
+  --external-trace private-eval https://example.invalid/private.jsonl SHA256_HEX \
+  --output-dir artifacts/evaluation-01-bundle
+
+moe-cache-lab bundle-verify artifacts/evaluation-01-bundle
 ```
 
 External references are metadata-only and never fetched. Embedded traces are
@@ -437,6 +472,12 @@ For source-tree tests on PowerShell:
 ```powershell
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
+```
+
+For source-tree tests on Bash/Linux:
+
+```bash
+PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
 Portable GitHub CI is intentionally offline with respect to Hugging Face model

@@ -10,6 +10,7 @@ include V05_RELEASE_NOTES.md
 include V06_RELEASE_NOTES.md
 include V07_RELEASE_NOTES.md
 include V08_RELEASE_NOTES.md
+include V09_RELEASE_NOTES.md
 include LICENSE
 include scripts/audit_core_workflow.py
 include scripts/audit_distributions.py

@@ -21,8 +21,8 @@ def _load_distribution_audit():
 class V08ReleaseHardeningTests(unittest.TestCase):
     def test_release_version_metadata_and_python_support_are_frozen(self) -> None:
         pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-        self.assertEqual(__version__, "0.8.0")
-        self.assertIn('version = "0.8.0"', pyproject)
+        self.assertEqual(__version__, "0.9.0")
+        self.assertIn('version = "0.9.0"', pyproject)
         self.assertIn(
             'description = "Trace-driven pre-flight analysis for MoE routing, '
             'expert caching, and offloading research."',

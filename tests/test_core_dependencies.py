@@ -60,7 +60,7 @@ print(moe_cache_lab.__version__)
             text=True,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(completed.stdout.strip(), "0.8.0")
+        self.assertEqual(completed.stdout.strip(), "0.9.0")
 
     def test_missing_dependency_is_translated_to_bounded_granite_error(self) -> None:
         missing = ModuleNotFoundError("No module named 'torch'", name="torch")

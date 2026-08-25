@@ -22,7 +22,7 @@ class V05ReleaseTests(unittest.TestCase):
         self.assertIn("When not to use it", readme)
         self.assertIn("examples/no-download-preflight/README.md", readme)
         self.assertIn("PREFLIGHT.md", readme)
-        self.assertIn("Current package version: **0.8.0**", readme)
+        self.assertIn("Current package version: **0.9.0**", readme)
         self.assertIn("Current package version: **0.5.0**", notes)
 
         for document in (readme, preflight, notes):
